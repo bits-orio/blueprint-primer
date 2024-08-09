@@ -1,0 +1,9 @@
+{
+    "name": "BlueprintPrimer",
+    "version": "0.1.0",
+    "title": "Blueprint Primer",
+    "author": "YourName",
+    "factorio_version": "1.1",
+    "dependencies": ["base >= 1.1"],
+    "description": "Adds functionality to prime blueprints with ingredients based on recipe, using game data."
+  }
