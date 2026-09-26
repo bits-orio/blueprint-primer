@@ -5,6 +5,9 @@
 
 local const = require("scripts.const")
 
+-- The marker's share of the icon; tools/gen_icons.py previews the same.
+local MARKER_SCALE = 0.78
+
 -- "any-entity" does not promise to include ghosts, so "entity-ghost" is
 -- listed explicitly; "same-force" only narrows the set. The entity filters
 -- are added in data-final-fixes (prototypes/tool_filters.lua), once every
@@ -22,8 +25,13 @@ data:extend({
   {
     type = "selection-tool",
     name = const.TOOL,
-    icon = "__BlueprintPrimer__/graphics/primer-tool.png",
-    icon_size = 64,
+    -- Vanilla's own item-request marker, the icon the game uses for requests,
+    -- on a square of our own so the tool reads as distinct from it. Item
+    -- icons default to scale 32 / icon_size, so 0.5 is full size here.
+    icons = {
+      { icon = "__BlueprintPrimer__/graphics/primer-tool-frame.png", icon_size = 64, scale = 0.5 },
+      { icon = "__core__/graphics/icons/mip/item-request-slot.png", icon_size = 64, scale = 0.5 * MARKER_SCALE },
+    },
     flags = { "only-in-cursor", "spawnable", "not-stackable" },
     auto_recycle = false,
     hidden = true,

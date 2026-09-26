@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.2
+Date: 2026-09-26
+  Graphics:
+    - New icons built on Factorio's own item-request marker: the tool and the shortcut both show it on a square of blueprint paper, the shortcut on the blue button style vanilla uses for its blueprint shortcuts.
+    - New thumbnail: BP inside Factorio's item-request marker, on blueprint paper.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2026-09-26
   Features:

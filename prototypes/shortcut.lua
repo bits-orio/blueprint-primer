@@ -11,8 +11,11 @@ data:extend({
     name = const.SHORTCUT,
     action = "lua",
     associated_control_input = const.INPUT_PRIME,
+    -- Blueprint paper with Factorio's request marker (tools/gen_icons.py), on
+    -- the blue button style vanilla's own blueprint shortcuts use.
+    style = "blue",
     icon = "__BlueprintPrimer__/graphics/primer-shortcut.png",
-    icon_size = 32,
+    icon_size = 56,
     small_icon = "__BlueprintPrimer__/graphics/primer-shortcut-24.png",
     small_icon_size = 24,
     order = "b[blueprints]-z[blueprint-primer]",
