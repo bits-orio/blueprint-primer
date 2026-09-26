@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-09-26
+  Features:
+    - Copying or blueprinting a primed built machine keeps its priming. Vanilla carried only fuel still waiting for robots; the copy now gets the full ingredient amounts and fuel, as long as the source's ingredients have not all arrived yet.
+    - Shift+click settings paste copies priming. Pasting from a primed machine gives the destination the same recipe, craft count and fuel, topped up for what it already holds and with its own fuel estimate.
+    - Unresearched recipes can be picked. The recipe picker shows them on a red slot, and a chosen one carries vanilla's "not unlocked" sign; Blueprint always works, and Request works everywhere except a built furnace, which only accepts ingredients for researched recipes.
+  Changes:
+    - Renamed to Machine Primer (formerly Blueprint Primer): it primes one machine at a time, not whole blueprints. The internal name is unchanged, so saves and the mod portal page carry over.
+    - The recipe row opens the mod's own picker instead of vanilla's recipe chooser, so unresearched recipes can be marked.
+    - A drag over several machines outlines the one it primes (the one nearest the middle) and says that priming works one machine at a time.
+    - The primer tool leaves the cursor once it has picked a machine and the priming window opens. A pick that finds nothing primable keeps it in hand to try again.
+    - Requires Factorio 2.0.74 or newer, whose blueprint API keeps train couplings when a copy is rewritten.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2026-09-25
   Features:

@@ -48,6 +48,10 @@ const.UNREACHABLE_TIER = math.huge
 const.MIN_CONSUMPTION_FACTOR = 0.2
 const.MIN_SPEED_FACTOR       = 0.2
 
+-- How long the picked machine stays outlined after a drag over several.
+const.HINT_TICKS = 90
+const.HINT_BLINK_TICKS = 15
+
 -- Reasons returned as `false, reason`, or by priming.blocker; each is a
 -- locale key in [bp-primer].
 const.REASON = {
@@ -58,6 +62,7 @@ const.REASON = {
   TARGET_GONE         = "bp-primer.target-gone",
   RECIPE_MISMATCH     = "bp-primer.recipe-mismatch",
   RECIPE_NOT_ALLOWED  = "bp-primer.recipe-not-allowed",
+  FURNACE_NOT_RESEARCHED = "bp-primer.furnace-not-researched",
   CURSOR_BLOCKED      = "bp-primer.cursor-blocked",
   FUEL_SLOT_TAKEN     = "bp-primer.fuel-slot-taken",
   NO_FUEL             = "bp-primer.no-fuel",
@@ -72,6 +77,9 @@ const.NOTICE = {
   REQUESTED       = "bp-primer.requested",
   ALREADY_STOCKED = "bp-primer.already-stocked",
   RECIPE_CHANGED  = "bp-primer.recipe-changed",
+  NOT_RESEARCHED  = "bp-primer.not-researched",
+  FURNACE_NOT_RESEARCHED_YET = "bp-primer.furnace-not-researched-yet",
+  ONE_MACHINE     = "bp-primer.one-machine",
 }
 
 return const

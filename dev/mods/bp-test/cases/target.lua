@@ -148,6 +148,20 @@ local function removals(surface)
   check.same("pending.removals is empty for a ghost", pending.removals(ghost), {})
 end
 
+-- The cheap per-entity check a drag uses to count machines (tool.lua).
+local function is_machine(surface)
+  local y = Y - 6
+  local got = {
+    target.is_machine(rig.built(surface, "stone-furnace", rig.at(-30, y))),
+    target.is_machine(rig.ghost(surface, "assembling-machine-2", rig.at(-26, y))),
+    target.is_machine(rig.built(surface, "boiler", rig.at(-21.5, y))),
+    target.is_machine(rig.built(surface, "wooden-chest", rig.at(-17.5, y + 0.5))),
+    target.is_machine(rig.ghost(surface, "transport-belt", rig.at(-15.5, y + 0.5))),
+  }
+  check.same("target.is_machine furnace, ghost assembler, boiler yes; chest, belt no", got,
+    { true, true, true, false, false })
+end
+
 function cases.run(surface)
   check.run("target.resolve", function() resolve(surface) end)
   check.run("target.rejects", function() rejects(surface) end)
@@ -159,6 +173,7 @@ function cases.run(surface)
   check.run("target.furnace_proxy_recipe", function() furnace_proxy_recipe(surface) end)
   check.run("target.orientation", function() orientation(surface) end)
   check.run("target.removals", function() removals(surface) end)
+  check.run("target.is_machine", function() is_machine(surface) end)
 end
 
 return cases

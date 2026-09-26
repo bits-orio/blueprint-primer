@@ -68,13 +68,28 @@ local function has_requestable_items(t, recipe)
   return items > 0
 end
 
+-- Unresearched recipes are allowed (ADR-0009): the tool plans, the force
+-- researches. Blueprint-parameter placeholders are never real recipes.
 function target_recipe.allows(t, recipe_name)
   if not recipe_name or t.kind == const.KIND_FUEL_ONLY or not t.force.valid then return false end
   local recipe = t.force.recipes[recipe_name]
-  if not (recipe and recipe.enabled) or recipe.hidden then return false end
-  if recipe.prototype.parameter then return false end
+  if not recipe or recipe.hidden or recipe.prototype.parameter then return false end
   if not in_categories(recipe, t.prototype.crafting_categories) then return false end
   return has_requestable_items(t, recipe)
+end
+
+function target_recipe.unlocked(t, recipe_name)
+  if not t.force.valid then return false end
+  local recipe = t.force.recipes[recipe_name]
+  return recipe ~= nil and recipe.enabled
+end
+
+-- A built furnace accepts only an item that feeds an unlocked recipe, so its
+-- ingredients for an unresearched one would be dropped by the engine
+-- (ADR-0009). Everything else can take them and waits for the research.
+function target_recipe.deliverable(t, recipe_name)
+  if t.kind ~= const.KIND_FURNACE or t.is_ghost then return true end
+  return target_recipe.unlocked(t, recipe_name)
 end
 
 -- The recipe a machine is set to, where it can have one: an assembler,
@@ -102,6 +117,32 @@ end
 -- byte, so comparing the joined strings compares the fields in turn.
 local function inventory_order(recipe)
   return table.concat({ recipe.group.order, recipe.subgroup.order, recipe.order, recipe.name }, "\0")
+end
+
+local candidates = {}
+
+local function candidate(prototype, recipe)
+  if recipe.parameter then return false end
+  local items = item_ingredient_count(recipe)
+  if prototype.type == "furnace" then return items == 1 end
+  return items > 0
+end
+
+-- The recipes the picker offers this crafter, in inventory order, locked or
+-- not: which are researched is the force's business, shown per player.
+-- Memoised per prototype name like `primable`.
+function target_recipe.candidates(prototype)
+  local known = candidates[prototype.name]
+  if known then return known end
+  local keyed = {}
+  for name, recipe in pairs(prototypes.get_recipe_filtered(target_recipe.filters_for(prototype))) do
+    if candidate(prototype, recipe) then keyed[#keyed + 1] = { name = name, key = inventory_order(recipe) } end
+  end
+  table.sort(keyed, function(a, b) return a.key < b.key end)
+  known = {}
+  for i, entry in ipairs(keyed) do known[i] = entry.name end
+  candidates[prototype.name] = known
+  return known
 end
 
 local function furnace_recipe_for(t, item)

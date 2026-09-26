@@ -10,5 +10,5 @@ Half and Max buttons stand in for "half stack" and "full stack": Max is the slot
 
 - There are no per-ingredient overrides. A player who wants an unbalanced load edits the machine's slots in vanilla.
 - Fluid ingredients cannot be requested and are ignored by the cap; the window says so.
-- For a furnace the player picks the recipe (the output) with the vanilla recipe chooser, filtered to that furnace's crafting categories and to recipes with an item ingredient (a recipe the force has not unlocked is refused when picked), and preset from any request already pending on it, else from the furnace's current or last recipe when it has one.
+- For a furnace the player picks the recipe (the output) with a recipe picker filtered to that furnace's crafting categories and to recipes with an item ingredient (unresearched recipes are offered and marked, per ADR-0009, which supersedes the earlier refusal), and preset from any request already pending on it, else from the furnace's current or last recipe when it has one.
 - Reopening the window on a target that already carries a primed request presets the craft count and fuel from that request, so the window always starts from what is really pending.

@@ -113,7 +113,8 @@ local function absorb_foreign(collector, plan, owned)
   if grid and grid > 0 then host.items.grid_count = (host.items.grid_count or 0) + grid end
 end
 
-local function merge(existing, ours, owned)
+-- Also how a copy gets back the ingredients vanilla dropped (copy.lua).
+function request.merge(existing, ours, owned)
   local collector = new_collector()
   for _, plan in ipairs(existing or {}) do absorb_foreign(collector, plan, owned) end
   for _, plan in ipairs(ours) do
@@ -130,6 +131,7 @@ local function prepare_recipe(t, priming)
   local recipe, quality = priming.recipe, priming.quality or NORMAL
   if t.kind == const.KIND_FUEL_ONLY or not recipe then return true end
   if not target.allows_recipe(t, recipe) then return false, REASON.RECIPE_NOT_ALLOWED end
+  if not target.recipe_deliverable(t, recipe) then return false, REASON.FURNACE_NOT_RESEARCHED end
   local current, current_quality = target.current_recipe(t)
   if current == recipe and current_quality == quality then return true end
   if target.recipe_locked(t) then return false, REASON.RECIPE_MISMATCH end
@@ -140,7 +142,7 @@ end
 local function write_proxy(t, ours)
   local entity = t.entity
   local proxy = entity.item_request_proxy
-  local merged = merge(proxy and proxy.insert_plan, ours, owned_inventories(t))
+  local merged = request.merge(proxy and proxy.insert_plan, ours, owned_inventories(t))
   if proxy then
     proxy.insert_plan = merged
     -- An emptied proxy with nothing to remove would linger as a dead marker.
@@ -165,7 +167,7 @@ function request.apply(t, priming)
   local ok, reason = prepare_recipe(t, priming)
   if not ok then return false, reason end
   if t.is_ghost then
-    t.entity.insert_plan = merge(t.entity.insert_plan, ours, owned_inventories(t))
+    t.entity.insert_plan = request.merge(t.entity.insert_plan, ours, owned_inventories(t))
   else
     write_proxy(t, ours)
   end

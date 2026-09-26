@@ -45,6 +45,20 @@ function pending.count(plans, inventory, name, quality)
   return total
 end
 
+-- The plans cut down to their positions in one inventory, leaving out any
+-- plan with none there: what a copy carries from a proxy (copy.lua).
+function pending.within(plans, inventory)
+  local list = {}
+  for _, plan in ipairs(plans) do
+    local positions = {}
+    for _, position in ipairs(plan.items.in_inventory or {}) do
+      if position.inventory == inventory then positions[#positions + 1] = position end
+    end
+    if #positions > 0 then list[#list + 1] = { id = plan.id, items = { in_inventory = positions } } end
+  end
+  return list
+end
+
 -- Every item requested into one inventory, in plan order, as
 -- `{ name, quality, count }`.
 function pending.items_in(plans, inventory)

@@ -14,6 +14,9 @@ target.current_recipe = target_recipe.current
 target.allows_recipe = target_recipe.allows
 target.recipe_filters = target_recipe.filters
 target.recipe_locked = target_recipe.locked
+target.recipe_unlocked = target_recipe.unlocked
+target.recipe_deliverable = target_recipe.deliverable
+target.recipe_candidates = target_recipe.candidates
 
 local function describe(entity)
   if entity.type == const.GHOST_TYPE then
@@ -64,6 +67,12 @@ local function settle_kind(t)
   if t.burner and t.kind ~= const.KIND_FUEL_ONLY and target_recipe.on_fluid_only(t) then
     t.kind = const.KIND_FUEL_ONLY
   end
+end
+
+-- Whether the entity is a machine the window could open for, by prototype
+-- alone: cheap enough to ask of every entity in a drag.
+function target.is_machine(entity)
+  return entity.valid and kind_of(describe(entity).prototype) ~= nil
 end
 
 function target.from_entity(entity, force)

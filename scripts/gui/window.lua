@@ -4,13 +4,16 @@
 
 local const = require("scripts.const")
 local state = require("scripts.state")
-local target = require("scripts.target")
 local fuel = require("scripts.fuel")
 local names = require("scripts.gui.names")
 local priming = require("scripts.gui.priming")
 local view = require("scripts.gui.view")
 
 local window = {}
+
+local SLOT = 40
+local OVERLAY = 32
+local ROW_SPACING = 8
 
 local function add_titlebar(frame, t)
   local bar = frame.add({ type = "flow", direction = "horizontal" })
@@ -35,7 +38,7 @@ local function add_row(rows, caption)
   rows.add({ type = "label", style = "caption_label", caption = caption })
   local flow = rows.add({ type = "flow", direction = "horizontal" })
   flow.style.vertical_align = "center"
-  flow.style.horizontal_spacing = 8
+  flow.style.horizontal_spacing = ROW_SPACING
   return flow
 end
 
@@ -69,11 +72,24 @@ local function add_amount(flow, prefix, tooltip)
   add_number_field(flow, names[prefix .. "_field"], tooltip)
 end
 
-local function add_recipe_rows(rows, t)
-  add_row(rows, { "bp-primer.recipe-label" }).add({
-    type = "choose-elem-button", name = names.recipe, elem_type = "recipe",
-    elem_filters = target.recipe_filters(t), tooltip = { "bp-primer.recipe-tooltip" },
+-- The recipe slot opens the picker (ADR-0009). Vanilla's "not unlocked"
+-- sign is laid over it with a negative margin, the way core styles overlap
+-- widgets, and ignores clicks so they reach the slot underneath.
+local function add_recipe_slot(flow)
+  flow.add({ type = "sprite-button", name = names.recipe, style = "slot_button" })
+  local sign = flow.add({
+    type = "sprite", name = names.recipe_overlay, sprite = "utility/crafting_machine_recipe_not_unlocked",
+    resize_to_sprite = false, ignored_by_interaction = true,
   })
+  sign.style.width = OVERLAY
+  sign.style.height = OVERLAY
+  sign.style.stretch_image_to_widget_size = true
+  -- Back over the slot and the row gap, then in by half the size difference.
+  sign.style.left_margin = (SLOT - OVERLAY) / 2 - SLOT - ROW_SPACING
+end
+
+local function add_recipe_rows(rows, t)
+  add_recipe_slot(add_row(rows, { "bp-primer.recipe-label" }))
   add_row(rows, { "bp-primer.ingredients-label" }).add({
     type = "flow", name = names.ingredients, direction = "horizontal",
   }).style.horizontal_spacing = 0
@@ -107,6 +123,9 @@ local function add_content(frame, t)
   rows.style.vertical_spacing = 8
   if t.kind ~= const.KIND_FUEL_ONLY then add_recipe_rows(rows, t) end
   if t.burner then add_fuel_row(rows, t) end
+  local picker = content.add({ type = "frame", name = names.picker, style = "inside_deep_frame", direction = "vertical" })
+  picker.style.top_margin = 8
+  picker.visible = false
   local status = content.add({ type = "label", name = names.status })
   status.style.top_margin = 8
   status.style.single_line = false

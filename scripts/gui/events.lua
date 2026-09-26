@@ -9,6 +9,7 @@ local target = require("scripts.target")
 local request = require("scripts.request")
 local blueprint = require("scripts.blueprint")
 local names = require("scripts.gui.names")
+local picker = require("scripts.gui.picker")
 local priming = require("scripts.gui.priming")
 local window = require("scripts.gui.window")
 local view = require("scripts.gui.view")
@@ -49,7 +50,7 @@ end
 local function dispatch(handlers, event, keep_text)
   local element = event.element
   if not (element and element.valid) then return end
-  local handler = handlers[element.name]
+  local handler = handlers[element.name] or handlers[element.tags.handler]
   if not handler then return end
   local player, p = context(event)
   if not player then return end
@@ -80,7 +81,25 @@ local function on_blueprint(player, p)
   submit(player, p, function() return blueprint.to_cursor(player, p.target, p) end, "bp-primer.blueprint-failed")
 end
 
+local function on_recipe_slot(player, p)
+  local container = view.find(player, names.picker)
+  if container then picker.toggle(container, p.target) end
+end
+
+-- Any listed recipe is allowed, researched or not (ADR-0009); a refusal
+-- here means the machine changed under the open picker.
+local function on_pick(player, p, element)
+  local recipe = element.tags.recipe
+  local container = view.find(player, names.picker)
+  if container then picker.close(container) end
+  if not priming.set_recipe(p, recipe) then
+    window.notify(player, const.REASON.RECIPE_NOT_ALLOWED)
+  end
+end
+
 local click = {
+  [names.recipe] = on_recipe_slot,
+  [names.pick] = on_pick,
   [names.output_half] = function(_, p) priming.preset_crafts(p, false) end,
   [names.output_max] = function(_, p) priming.preset_crafts(p, true) end,
   [names.fuel_half] = function(_, p) priming.preset_fuel(p, false) end,
@@ -113,12 +132,6 @@ local text = {
 
 -- A cleared or refused choice is reset by the refresh to the record's value.
 local elem = {
-  [names.recipe] = function(player, p, element)
-    local recipe = element.elem_value
-    if recipe and not priming.set_recipe(p, recipe) then
-      window.notify(player, const.REASON.RECIPE_NOT_ALLOWED)
-    end
-  end,
   [names.fuel] = function(player, p, element)
     local item = element.elem_value
     if item and not priming.set_fuel(p, item, player.index) then

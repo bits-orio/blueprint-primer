@@ -1,6 +1,6 @@
-# Blueprint Primer
+# Machine Primer
 
-Exact, partial item requests for a single machine. Vanilla 2.0 only lets a player request whole stacks into a machine's slots; Blueprint Primer lets them ask for "10 iron ore and 3 coal" instead, and works out the fuel for them. Construction robots do all the delivering — the mod only writes requests.
+Exact, partial item requests for a single machine. Vanilla 2.0 only lets a player request whole stacks into a machine's slots; Machine Primer lets them ask for "10 iron ore and 3 coal" instead, and works out the fuel for them. Construction robots do all the delivering — the mod only writes requests.
 
 > Keep this glossary and the code in the same vocabulary. Decisions live in `docs/adr/`.
 
@@ -15,7 +15,10 @@ The one machine being primed: an entity ghost or a built entity in the world. Ex
 _Avoid_: selection (that is the drag gesture, which may cover several entities)
 
 **Primed request**:
-The item requests Blueprint Primer writes onto a target, as insert plans on the ghost or on an item-request-proxy for a built entity. Only covers the target's ingredient and fuel inventories; requests for any other inventory (modules above all) are never touched.
+The item requests Machine Primer writes onto a target, as insert plans on the ghost or on an item-request-proxy for a built entity. Only covers the target's ingredient and fuel inventories; requests for any other inventory (modules above all) are never touched.
+
+**Carried request**:
+A primed request that travels to another machine by a vanilla copy, blueprint or Shift+click settings paste of the primed one. A machine counts as primed while its ingredients are still pending; the copy then gets the source's whole priming (full ingredient amounts and fuel, as a reopened window would show it), not just what is in flight. Once robots have delivered the ingredients, there is nothing to carry.
 
 **Primed blueprint**:
 A blueprint holding exactly one machine, carrying the same recipe and primed request as the window shows. Placed like any vanilla blueprint, as often as the player likes.

@@ -58,4 +58,13 @@ function reopen.preset(p)
   p.fuel_edited = p.crafts < 1 or count ~= fuel.estimate(p.target, p.recipe, p.crafts, item)
 end
 
+-- A settings paste (ADR-0008) starts from the source machine's Priming
+-- instead: its recipe, crafts and fuel. Settling then fits them to this
+-- machine, whose own estimate sizes the fuel unless the amount was typed.
+function reopen.carry(p, from)
+  p.recipe, p.quality, p.crafts = from.recipe, from.quality, from.crafts
+  if from.fuel then p.fuel, p.fuel_quality = from.fuel, fuel.quality_for(p.target, from.fuel) end
+  p.fuel_count, p.fuel_edited = from.fuel_count, from.fuel_edited
+end
+
 return reopen

@@ -92,7 +92,9 @@ local function live_recipe(t)
   return recipe, quality or const.NORMAL_QUALITY
 end
 
-function priming.new(t, player_index)
+-- `carried`: another machine's Priming to start from instead of this
+-- target's own pending request (a settings paste, paste.lua).
+function priming.new(t, player_index, carried)
   local recipe, quality = live_recipe(t)
   local p = {
     target = t,
@@ -106,7 +108,7 @@ function priming.new(t, player_index)
   }
   if t.burner then p.fuel, p.fuel_quality = fuel.default(t, player_index) end
   if is_fuel_only(p) and p.fuel then p.fuel_count = share(priming.fuel_cap(p), false) end
-  reopen.preset(p)
+  if carried then reopen.carry(p, carried) else reopen.preset(p) end
   settle(p)
   return p
 end

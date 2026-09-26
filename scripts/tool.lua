@@ -26,11 +26,14 @@ end
 
 -- Nearest the drag's centre wins (ADR-0001). target.from_entity only runs
 -- on entities closer than the best so far, so a drag across a whole base
--- stays cheap. Returns the target, or the reason the nearest entity failed.
+-- stays cheap. Returns the target, the reason the nearest entity failed,
+-- and how many machines the drag covered.
 local function nearest_target(entities, area, force)
   local cx, cy = centre(area)
   local best, best_distance, reason, reason_distance
+  local machines = 0
   for _, entity in pairs(entities) do
+    if target.is_machine(entity) then machines = machines + 1 end
     local distance = entity.valid and distance_sq(entity, cx, cy)
     if distance and (not best_distance or distance < best_distance) then
       local t, why = target.from_entity(entity, force)
@@ -41,7 +44,33 @@ local function nearest_target(entities, area, force)
       end
     end
   end
-  return best, reason
+  return best, reason, machines
+end
+
+-- A drag over several machines still primes one (ADR-0001). Say so gently:
+-- outline the one picked, for this player only, the way vanilla outlines a
+-- copy source, and a line of flying text.
+local function hint_one_machine(player, t)
+  local entity = t.entity
+  entity.surface.create_entity({
+    name = "highlight-box", position = entity.position, bounding_box = entity.selection_box,
+    box_type = "copy", render_player_index = player.index,
+    time_to_live = const.HINT_TICKS, blink_interval = const.HINT_BLINK_TICKS,
+  })
+  window.notify(player, const.NOTICE.ONE_MACHINE)
+end
+
+local function holding_tool(player)
+  local cursor = player.cursor_stack
+  return cursor and cursor.valid_for_read and cursor.name == const.TOOL
+end
+
+-- Once a machine is picked the tool has done its job, so it leaves the
+-- cursor as the window opens. Only the tool is ever cleared: anything else
+-- the player holds stays put.
+local function open(player, t)
+  if holding_tool(player) then player.clear_cursor() end
+  window.open(player, t)
 end
 
 -- Pressing the button while already holding the tool puts it away, like
@@ -49,7 +78,7 @@ end
 local function toggle_tool(player)
   local cursor = player.cursor_stack
   if not cursor then return end
-  if cursor.valid_for_read and cursor.name == const.TOOL then
+  if holding_tool(player) then
     player.clear_cursor()
     return
   end
@@ -68,8 +97,12 @@ end
 function tool.on_selected(event)
   local player = game.get_player(event.player_index)
   if not (player and player.valid) then return end
-  local t, reason = nearest_target(event.entities or {}, event.area, player.force)
-  if t then return window.open(player, t) end
+  local t, reason, machines = nearest_target(event.entities or {}, event.area, player.force)
+  if t then
+    open(player, t)
+    if machines > 1 then hint_one_machine(player, t) end
+    return
+  end
   window.notify(player, reason or "bp-primer.nothing-to-prime")
 end
 
@@ -87,7 +120,7 @@ function tool.on_hotkey(event)
   local selected = player.selected
   if selected and selected.valid then
     local t, why = target.from_entity(selected, player.force)
-    if t then return window.open(player, t) end
+    if t then return open(player, t) end
     if refusal_worth_saying(selected, why) then return window.notify(player, why) end
   end
   toggle_tool(player)

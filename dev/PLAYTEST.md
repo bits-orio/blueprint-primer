@@ -8,6 +8,9 @@ Each line is an action, then the expected result.
 
 - [ ] Shortcut bar: the primer button shows its icon, and its tooltip names ALT + P.
 - [ ] Click the button: the primer tool is in the cursor. Click again: it is gone.
+- [ ] Click the recipe slot: the picker opens with vanilla-style group tabs; unresearched recipes (steel plate early on) sit on red slots. Pick one: the slot turns red with the "not unlocked" sign, and the note explains. On a built furnace Request is disabled; on a ghost it stays enabled; Blueprint always works.
+- [ ] Drag the tool over two or more machines: the one nearest the middle blinks with an outline for about 1.5 s, flying text says it primes one machine at a time, and its window opens. A drag over one machine shows no hint.
+- [ ] With the tool, click a furnace: the window opens and the tool has left the cursor. Click bare ground: the tool stays in hand.
 - [ ] Hover a furnace and press ALT + P: its priming window opens. Hover bare ground and press ALT + P: the tool is in the cursor.
 - [ ] Hover a rocket silo and press ALT + P: flying text says this kind of crafting machine cannot be primed, and the cursor is unchanged. Hover a chest or a tree: the tool is toggled, with no message.
 - [ ] Hold an item that cannot be put away (full inventory) and press the shortcut: "Empty your cursor first."
@@ -71,5 +74,5 @@ Each line is an action, then the expected result.
 - [ ] Let robots build the ghost while its window is open, then press Request: it tops up the built machine.
 - [ ] Save and reload with a window open: it still works.
 - [ ] Enable or disable another mod on that save: open windows are gone after loading, with no error.
-- [ ] If a Factorio 1.1 save that had Blueprint Primer 0.1.1 is available, load it in 2.0: no script error, the old "Prime Blueprint" top-bar button and its left frame are gone, and priming a stone furnace works.
+- [ ] If a Factorio 1.1 save that had BlueprintPrimer 0.1.1 is available, load it in 2.0: no script error, the old "Prime Blueprint" top-bar button and its left frame are gone, and priming a stone furnace works.
 - [ ] Two players prime different machines at the same time: no cross-talk and no desync.

@@ -12,7 +12,7 @@ RUN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.run/gui"
 PID=$(cat "$RUN/pid")
 W=$(xdotool search --pid "$PID" | head -1)
 [ -n "$W" ] || { echo "client window not found"; exit 1; }
-focus() { xdotool windowactivate --sync "$W"; sleep 0.3; }
+focus() { xdotool windowactivate --sync "$W" 2>/dev/null || { xdotool windowraise "$W"; xdotool windowfocus --sync "$W"; }; sleep 0.3; }
 cmd="$1"; shift
 case "$cmd" in
   shot)  focus; import -window "$W" "$1" ;;
@@ -22,5 +22,5 @@ case "$cmd" in
          xdotool mousemove --window "$W" "$3" "$4"; sleep 0.2; xdotool mouseup 1 ;;
   key)   focus; for k in "$@"; do xdotool key --window "$W" "$k"; sleep 0.2; done ;;
   type)  focus; xdotool type --delay 60 "$1" ;;
-  stop)  kill "$PID" ;;
+  stop)  kill "$PID" 2>/dev/null; ps -C factorio -o pid=,args= | grep "/.run/gui/" | awk '{print $1}' | xargs -r kill ;;
 esac

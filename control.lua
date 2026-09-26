@@ -1,9 +1,11 @@
--- Event wiring only: every handler lives under scripts/. Blueprint Primer
+-- Event wiring only: every handler lives under scripts/. Machine Primer
 -- registers no on_tick; everything it does answers a player action.
 
 local const = require("scripts.const")
 local state = require("scripts.state")
 local tool = require("scripts.tool")
+local copy = require("scripts.copy")
+local paste = require("scripts.paste")
 local window = require("scripts.gui.window")
 local legacy_gui = require("scripts.gui.legacy")
 local gui_events = require("scripts.gui.events")
@@ -39,6 +41,10 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
   if event.prototype_name == const.SHORTCUT then tool.on_shortcut(event) end
 end)
 script.on_event(const.INPUT_PRIME, tool.on_hotkey)
+
+-- Copies, blueprints and settings paste carry a pending primed request (ADR-0008).
+script.on_event(defines.events.on_player_setup_blueprint, copy.on_setup)
+script.on_event(defines.events.on_entity_settings_pasted, paste.on_pasted)
 
 script.on_event(defines.events.on_gui_click, gui_events.on_click)
 script.on_event(defines.events.on_gui_value_changed, gui_events.on_value_changed)

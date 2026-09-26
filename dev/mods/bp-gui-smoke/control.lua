@@ -1,10 +1,10 @@
--- A fixed little world for driving Blueprint Primer's GUI by hand (or by
+-- A fixed little world for driving Machine Primer's GUI by hand (or by
 -- xdotool) in a real client. Everything sits at known tile offsets from the
 -- player, who stands at the origin with zoom 1, so a machine at (dx, dy) is
 -- on screen at centre + 32 * (dx, dy) pixels.
 
 local STOCK = {
-  { "coal", 200 }, { "iron-ore", 300 }, { "stone", 100 },
+  { "coal", 200 }, { "stone", 100 },
   { "iron-plate", 100 },
   { "copper-cable", 200 }, { "solid-fuel", 50 }, { "wood", 50 },
 }
@@ -45,7 +45,8 @@ script.on_init(function()
   flatten(surface)
   game.forces.enemy.kill_all_units()
   game.map_settings.enemy_expansion.enabled = false
-  game.forces.player.enable_all_recipes()
+  -- Recipes stay as in a fresh freeplay game, so steel plate and engine
+  -- units are unresearched for the ADR-0009 checks.
   robots(surface)
   ghost(surface, "stone-furnace", { 4, -3 })                                  -- A: ghost furnace
   local f = surface.create_entity { name = "stone-furnace", position = { 8, -3 }, force = "player" }
@@ -53,6 +54,7 @@ script.on_init(function()
   ghost(surface, "assembling-machine-2", { 4.5, 3.5 }, "electronic-circuit")  -- C: ghost assembler
   surface.create_entity { name = "boiler", position = { 9.5, 3 }, force = "player" } -- D: fuel-only
   ghost(surface, "steel-furnace", { 13, -3 })                                 -- E: ghost steel furnace
+  surface.create_entity { name = "steel-furnace", position = { 21, -3 }, force = "player" } -- I: empty built steel furnace
   local w = surface.create_entity { name = "stone-furnace", position = { 17, -3 }, force = "player" }
   w.get_inventory(defines.inventory.fuel).insert { name = "wood", count = 5 } -- F: furnace burning wood
   if prototypes.entity["captive-biter-spawner"] then                          -- G: fuel-only crafter
@@ -67,4 +69,40 @@ script.on_event(defines.events.on_player_created, function(ev)
   p.teleport({ 0, 0 })
   p.zoom = 1
   log("BP_GUI ready")
+end)
+
+-- Dev-only state log: every 2 s, one line per crafter or ghost whose
+-- requests or contents changed, so a driven test reads the log instead of
+-- typing into the console. Polling is fine here; this mod never ships.
+local function describe(e)
+  local ghost = e.type == "entity-ghost"
+  local proxy = (not ghost) and e.item_request_proxy
+  local plan = ghost and e.insert_plan or (proxy and proxy.insert_plan) or {}
+  local parts = {}
+  for _, p in ipairs(plan) do
+    for _, pos in ipairs(p.items.in_inventory or {}) do
+      parts[#parts + 1] = p.id.name .. "@" .. pos.inventory .. "=" .. (pos.count or 1)
+    end
+  end
+  local inside = ""
+  if not ghost then
+    for _, i in ipairs { defines.inventory.crafter_input, defines.inventory.fuel } do
+      local inv = e.get_inventory(i)
+      for _, c in ipairs(inv and inv.get_contents() or {}) do inside = inside .. c.name .. "=" .. c.count .. " " end
+    end
+  end
+  return (ghost and ("ghost:" .. e.ghost_name) or e.name) .. " req[" .. table.concat(parts, ",") .. "] in[" .. inside .. "]"
+end
+
+script.on_nth_tick(120, function()
+  storage.seen = storage.seen or {}
+  local s = game.surfaces.nauvis
+  for _, e in pairs(s.find_entities_filtered { area = { { -40, -30 }, { 40, 30 } }, type = { "furnace", "assembling-machine", "entity-ghost" } }) do
+    local key = e.position.x .. "," .. e.position.y
+    local line = describe(e)
+    if storage.seen[key] ~= line then
+      storage.seen[key] = line
+      log("BP_STATE (" .. key .. ") " .. line)
+    end
+  end
 end)

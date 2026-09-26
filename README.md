@@ -1,6 +1,8 @@
-# Blueprint Primer
+# Machine Primer
 
-Exact, partial item requests for a single machine. Vanilla 2.0 lets you request items into a machine's ingredient slots, but only in whole stacks — there is no way to ask a furnace for 10 ore. Blueprint Primer fixes that: point it at a furnace or assembler, ghost or built, choose a recipe and a craft count, and it writes an exact request for exactly that much. Construction robots do the delivering; the mod only writes the request.
+Exact, partial item requests for a single machine. Vanilla 2.0 lets you request items into a machine's ingredient slots, but only in whole stacks — there is no way to ask a furnace for 10 ore. Machine Primer fixes that: point it at a furnace or assembler, ghost or built, choose a recipe and a craft count, and it writes an exact request for exactly that much. Construction robots do the delivering; the mod only writes the request.
+
+Formerly **Blueprint Primer** (internal name `BlueprintPrimer`, which the mod portal and saves still use). It was renamed because it primes one machine at a time, not whole blueprints.
 
 It's for anyone who is tired of a fresh furnace eating a full stack of ore and half a stack of coal for a batch they only needed ten of, or who wants to stamp down a row of identically-primed furnaces from one blueprint.
 
@@ -13,8 +15,8 @@ This is a ground-up rewrite of the 1.1 version for Factorio 2.0. A 1.1 save that
 1. Install the mod and start or load a 2.0 game.
 2. Grab the primer tool from the shortcut bar, or press **ALT + P** while hovering a furnace or assembler (ghost or built).
 3. With the tool, click the machine to open the priming window (ALT + P skips this step).
-4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want.
-5. Hit **Request** to write the request onto that machine, or **Blueprint** to take a primed copy of it into your cursor instead.
+4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want. Recipes you have not researched yet show on a red slot; you can still pick them to plan ahead.
+5. Hit **Request** to write the request onto that machine, or **Blueprint** to take a primed copy of it into your cursor instead. To prime the rest of a row, copy-paste the primed machine or Shift+click paste its settings onto the others.
 
 ## Fuel-only machines
 
@@ -44,6 +46,7 @@ The default fuel is whatever a built machine is already burning, at its quality 
 ## Limitations
 
 - One machine at a time. A primed blueprint holds exactly one entity; there's no multi-machine blueprint priming (see `docs/adr/0001-one-machine-at-a-time.md`).
+- Copies, blueprints and Shift+click settings paste carry a machine's priming only while its ingredients are still pending (the copy then gets the full amounts and fuel). Once robots have delivered the ingredients there is nothing to carry, the same as vanilla's fuel requests (see `docs/adr/0008-copies-and-settings-paste-carry-pending-requests.md`).
 - Fluid ingredients can't be requested — the window flags them and leaves them out of the slider's cap.
 - No inventory-transfer button. Requests wait for construction robots, exactly like any other vanilla request (see `docs/adr/0002-requests-only-robots-deliver.md`).
 
