@@ -1,0 +1,9 @@
+{
+  "name": "bp-test",
+  "version": "0.0.1",
+  "title": "Blueprint Primer tests",
+  "author": "bits-orio",
+  "factorio_version": "2.0",
+  "description": "Dev-only: headless contract and robot-delivery tests for Blueprint Primer, driven by dev/run-tests.sh. Never shipped.",
+  "dependencies": ["base >= 2.0", "BlueprintPrimer", "? space-age", "? quality"]
+}

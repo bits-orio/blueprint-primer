@@ -1,9 +1,12 @@
 {
-    "name": "BlueprintPrimer",
-    "version": "0.1.1",
-    "title": "Blueprint Primer",
-    "author": "YourName",
-    "factorio_version": "1.1",
-    "dependencies": ["base >= 1.1"],
-    "description": "Adds functionality to prime blueprints with ingredients based on recipe, using game data."
-  }
+  "name": "BlueprintPrimer",
+  "version": "0.2.0",
+  "title": "Blueprint Primer",
+  "author": "bits-orio",
+  "description": "Prime a furnace or assembler with the exact ingredients and fuel amounts its recipe needs, down to a partial stack. Boilers, burner drills and locomotives get just the fuel. Point it at a machine or a ghost, or stamp primed blueprints. Construction robots deliver the item request.",
+  "homepage": "https://discord.gg/tWz4FT74pH",
+  "factorio_version": "2.0",
+  "dependencies": [
+    "base >= 2.0"
+  ]
+}

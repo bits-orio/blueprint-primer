@@ -1,0 +1,13 @@
+# Editor workspace files
+*.code-workspace
+
+# Local test rig (save, mods symlink, spike/test run logs and zips)
+/.run/
+
+# Build output
+/build/
+/*.zip
+
+# Python bytecode from the tools/ generators
+__pycache__/
+*.pyc

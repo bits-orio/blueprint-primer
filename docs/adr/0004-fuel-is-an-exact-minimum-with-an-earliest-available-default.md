@@ -1,0 +1,15 @@
+# Fuel is an exact minimum, defaulting to the earliest-available fuel
+
+For a burner crafting machine the window pre-fills a **fuel estimate**: the smallest whole number of fuel items whose energy covers the chosen crafts in this particular machine. Everything comes from prototypes at runtime — recipe energy, the machine's crafting speed and energy usage at its quality, the burner's effectivity, the fuel's fuel value — so a steel furnace correctly asks for about half what a stone furnace does, and modded machines and fuels work without a table.
+
+The estimate is a starting value. The player may type any other amount, and moving the craft slider recomputes it.
+
+The **default fuel** is, in order: the fuel a built machine already holds, at its quality (a request for anything else could not be delivered next to it); the one the player last chose for that fuel category, if this burner accepts it; otherwise the earliest-available fuel: one obtainable without research (a mined resource, or a recipe enabled from the start), else the one unlocked lowest in the tech tree. Wood is never the default while any other accepted fuel exists — it is technically research-free but nobody wants their furnaces requesting it. The ranking is a fixed property of the prototypes, not of the force's research state, so it is the same for every player.
+
+## Consequences
+
+- No safety margin beyond one second of the machine's energy usage, added before rounding up. The headless spike (`dev/run-spike.sh`) measured a fixed start-up cost of about 1.6 kJ per run — a tick of a 90 kW furnace — on top of the recipe energy: 4 coal smelted exactly 50 ore in a stone furnace with 1,598,400 J left, where the bare formula predicts 1,600,000 J. Without the margin, a craft count whose energy landed exactly on a fuel-item boundary would starve the last craft. One second of energy usage is far below any fuel item's value, so the margin only ever changes the answer at such a boundary.
+- The spike also confirmed the formula against the engine: 3 coal (one fewer than the estimate) smelted 41 of 50 ore in a stone furnace, and 1 coal smelted 27 of 50 in a steel furnace, matching 12 MJ ÷ 288 kJ and 4 MJ ÷ 144 kJ.
+- Module effects count. For a built machine the live speed and consumption bonuses are used; for a ghost or proxy, module requests already on it are applied (at normal quality, which can only over-estimate), and modules a pending proxy is about to remove are subtracted at their own quality. The engine reports the live consumption bonus already clamped at its floor, so the result errs high, never low. Beacons around a ghost (or a copy placed from a primed blueprint) are not counted — there is nothing to read until the machine exists. The margin scales with the same consumption factor.
+- One fuel type per target. Machines with several fuel slots get the same fuel in as many slots as the amount needs.
+- Nothing is hardcoded to "coal": on a map without coal the default follows the rule above, and non-chemical categories (e.g. nutrients for a biochamber) follow the same rule within their own category.

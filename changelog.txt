@@ -1,0 +1,23 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-09-25
+  Features:
+    - Rewritten for Factorio 2.0. Priming now works on one machine at a time instead of a whole blueprint: point the primer tool at a furnace or assembler, ghost or built, and a window opens for that machine alone.
+    - Partial item requests. Ask for exactly the ingredients a chosen number of crafts needs, down to a partial stack, not a whole one.
+    - A fuel estimate for burner machines, computed from the recipe, the machine's crafting speed and energy usage, and the chosen fuel's value, so a steel furnace correctly asks for less coal than a stone one.
+    - Boilers, burner mining drills, burner inserters and locomotives get a fuel-only window: pick a fuel and a count up to what the fuel slots hold.
+    - Primed blueprints: take a copy of the primed machine, recipe and request into a fresh blueprint to stamp down a row of identically-primed furnaces or assemblers.
+    - The shortcut-bar button puts the primer tool in your cursor; ALT + P over a machine opens its priming window directly.
+  Compatibility:
+    - A 1.1 save that had 0.1.1 keeps working when opened in 2.0. The old whole-blueprint window and its top-bar button are removed on load.
+    - Works with or without Space Age and Quality. Quality recipes request quality ingredients, biochambers get nutrients, and a biochamber cracking oil gets a fuel-only window that keeps its recipe.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2024-08-10
+  Bugfixes:
+    - Fixed a bad copy-paste in the 0.1.0 priming code.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2024-08-09
+  Features:
+    - Initial 1.1 release. Primed a whole blueprint in one pass: every assembler in it got a recipe from one shared picker, and every burner got fuel.
