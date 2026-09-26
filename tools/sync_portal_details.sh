@@ -41,8 +41,9 @@ for field in title summary category license homepage source_url; do
     value=$(jq -r --arg f "$field" '.[$f] // empty' "$META")
     [[ -n "$value" ]] && ARGS+=( --form-string "${field}=${value}" )
 done
-# deprecated is a bool: only send it when explicitly set.
-dep=$(jq -r '.deprecated // empty' "$META")
+# deprecated is a bool: only send it when explicitly set. Not `// empty`:
+# jq's // treats false as missing, so deprecated=false would never be sent.
+dep=$(jq -r 'if has("deprecated") then .deprecated | tostring else empty end' "$META")
 [[ -n "$dep" ]] && ARGS+=( --form-string "deprecated=${dep}" )
 # tags is multi-valued: one repeated form field per tag.
 while read -r tag; do
