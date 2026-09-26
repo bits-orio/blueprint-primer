@@ -67,7 +67,7 @@ def main():
             drift.append(("faq", "docs/portal-faq.md", "live differs"))
 
     if not drift:
-        print(f"portal check OK — {mod} matches this repo")
+        print(f"portal check OK: {mod} matches this repo")
         return 0
     print(f"portal has DRIFTED from this repo ({len(drift)} field(s)):", file=sys.stderr)
     for field, tracked, actual in drift:

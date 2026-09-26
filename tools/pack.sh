@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the distributable mod zip: <name>_<version>.zip, containing a single
-# top-level <name>_<version>/ folder. That folder name is not cosmetic —
+# top-level <name>_<version>/ folder. That folder name is not cosmetic:
 # Factorio refuses to load a mod whose zip root does not match it.
 #
 # This is the SINGLE source of packaging truth: a release workflow should
@@ -40,7 +40,7 @@ mkdir -p "build/${FOLDER}"
 # run artefacts. None of it is of any use inside the shipped mod, and dev/
 # and .run/ in particular can hold whole throwaway Factorio saves. The
 # ignored local artefacts (build/, .run/, editor workspaces) never exist on
-# a CI checkout but do exist locally, so they are excluded explicitly —
+# a CI checkout but do exist locally, so they are excluded explicitly:
 # otherwise a hand-built zip would differ from the published one.
 # -m prunes empty directories. Git cannot track an empty directory, so one
 # that exists in a working tree is absent from a CI checkout. Without this,

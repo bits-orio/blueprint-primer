@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Headless test runner for Machine Primer.
+# Headless test runner for Blueprint Primer.
 #
 # For each mod set (base only, then base + quality + space-age) it builds an
 # isolated mod directory under .run/tests/<set>/mods holding symlinks to the

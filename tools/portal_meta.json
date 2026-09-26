@@ -1,7 +1,7 @@
 {
   "mod": "BlueprintPrimer",
-  "title": "Machine Primer - exact item requests",
-  "summary": "Prime a furnace or assembler with the exact ingredients and fuel amounts its recipe needs, down to a partial stack. Boilers, burner drills and locomotives get just the fuel. Point it at a machine or a ghost, or stamp primed blueprints. Construction robots deliver the item request.",
+  "title": "Blueprint Primer - exact item requests",
+  "summary": "Prime a furnace or assembler with the exact ingredients and fuel amounts its recipe needs, down to a partial stack. Drag over a row, ghost or built, to prime every machine of one kind, or stamp primed blueprints. Boilers, burner drills and locomotives get just the fuel. Construction robots deliver the item request.",
   "category": "utilities",
   "tags": [
     "blueprints",

@@ -1,8 +1,6 @@
-# Machine Primer
+# Blueprint Primer
 
-Exact, partial item requests for a single machine. Vanilla 2.0 lets you request items into a machine's ingredient slots, but only in whole stacks — there is no way to ask a furnace for 10 ore. Machine Primer fixes that: point it at a furnace or assembler, ghost or built, choose a recipe and a craft count, and it writes an exact request for exactly that much. Construction robots do the delivering; the mod only writes the request.
-
-Formerly **Blueprint Primer** (internal name `BlueprintPrimer`, which the mod portal and saves still use). It was renamed because it primes one machine at a time, not whole blueprints.
+Exact, partial item requests for a single machine. Vanilla 2.0 lets you request items into a machine's ingredient slots, but only in whole stacks, so there is no way to ask a furnace for 10 ore. Blueprint Primer fixes that: point it at a furnace or assembler, ghost or built, choose a recipe and a craft count, and it writes an exact request for exactly that much. Construction robots do the delivering; the mod only writes the request.
 
 It's for anyone who is tired of a fresh furnace eating a full stack of ore and half a stack of coal for a batch they only needed ten of, or who wants to stamp down a row of identically-primed furnaces from one blueprint.
 
@@ -16,7 +14,8 @@ This is a ground-up rewrite of the 1.1 version for Factorio 2.0. A 1.1 save that
 2. Grab the primer tool from the shortcut bar, or press **ALT + P** while hovering a furnace or assembler (ghost or built).
 3. With the tool, click the machine to open the priming window (ALT + P skips this step).
 4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want. Recipes you have not researched yet show on a red slot; you can still pick them to plan ahead.
-5. Hit **Request** to write the request onto that machine, or **Blueprint** to take a primed copy of it into your cursor instead. To prime the rest of a row, copy-paste the primed machine or Shift+click paste its settings onto the others.
+5. Hit **Request** to write the request onto that machine, or **Blueprint** to take a primed copy of it into your cursor instead.
+6. To prime a whole row, drag the tool over it: every machine of the same kind as the one nearest the middle is primed with the same numbers, and Blueprint then takes the whole dragged area with those machines primed. Copy-paste and Shift+click settings paste of a primed machine work too.
 
 ## Fuel-only machines
 
@@ -24,9 +23,9 @@ Boilers, burner mining drills, burner inserters and locomotives get a fuel-only 
 
 ## How the fuel estimate works
 
-For a burner machine, the window pre-fills the smallest whole number of fuel items that covers the energy the chosen crafts will use, computed from the recipe's energy cost, the machine's crafting speed and energy usage, and the fuel's own energy value — not a hardcoded table, so it works for modded machines and fuels too. It's a starting value; you can type over it.
+For a burner machine, the window pre-fills the smallest whole number of fuel items that covers the energy the chosen crafts will use, computed from the recipe's energy cost, the machine's crafting speed and energy usage, and the fuel's own energy value. There is no hardcoded table, so it works for modded machines and fuels too. It's a starting value; you can type over it.
 
-Worked example, measured against the engine (see `dev/run-spike.sh`): smelting 50 iron ore takes **4 coal** in a stone furnace, but only **2 coal** in a steel furnace, because the steel furnace's higher crafting speed doesn't raise its energy use — it just does more work per joule. Ask a vanilla stack-based request for the same job and you'd get a full stack of coal (50) either way.
+Worked example, measured against the engine (see `dev/run-spike.sh`): smelting 50 iron ore takes **4 coal** in a stone furnace, but only **2 coal** in a steel furnace, because the steel furnace's higher crafting speed doesn't raise its energy use, so it does more work per joule. Ask a vanilla stack-based request for the same job and you'd get a full stack of coal (50) either way.
 
 The formula (`DESIGN.md` has the exact contract):
 
@@ -47,7 +46,7 @@ The default fuel is whatever a built machine is already burning, at its quality 
 
 - One machine at a time. A primed blueprint holds exactly one entity; there's no multi-machine blueprint priming (see `docs/adr/0001-one-machine-at-a-time.md`).
 - Copies, blueprints and Shift+click settings paste carry a machine's priming only while its ingredients are still pending (the copy then gets the full amounts and fuel). Once robots have delivered the ingredients there is nothing to carry, the same as vanilla's fuel requests (see `docs/adr/0008-copies-and-settings-paste-carry-pending-requests.md`).
-- Fluid ingredients can't be requested — the window flags them and leaves them out of the slider's cap.
+- Fluid ingredients can't be requested: the window flags them and leaves them out of the slider's cap.
 - No inventory-transfer button. Requests wait for construction robots, exactly like any other vanilla request (see `docs/adr/0002-requests-only-robots-deliver.md`).
 
 ## Links

@@ -6,6 +6,7 @@ local const = require("scripts.const")
 local state = require("scripts.state")
 local craft = require("scripts.craft")
 local target = require("scripts.target")
+local group = require("scripts.group")
 local names = require("scripts.gui.names")
 local priming = require("scripts.gui.priming")
 
@@ -168,6 +169,14 @@ function view.find(player, name)
   return index(frame, {})[name]
 end
 
+-- A group's line of what robots will bring to all of it (ADR-0011).
+local function refresh_totals(label, p, player_index)
+  local count = group.size(p)
+  label.visible = count > 1 and priming.blocker(p) == nil
+  if not label.visible then return end
+  label.caption = { "bp-primer.totals", group.totals(p, player_index), count }
+end
+
 -- skip: the name of a text field the player is typing into, if any.
 function view.refresh(player, skip)
   local frame = player.gui.screen[names.window]
@@ -176,6 +185,7 @@ function view.refresh(player, skip)
   local found = index(frame, {})
   refresh_crafts(found, p, skip)
   refresh_fuel(found, p, skip)
+  refresh_totals(found[names.totals], p, player.index)
   refresh_footer(found, p)
 end
 

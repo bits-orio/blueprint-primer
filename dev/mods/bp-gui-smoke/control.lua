@@ -1,4 +1,4 @@
--- A fixed little world for driving Machine Primer's GUI by hand (or by
+-- A fixed little world for driving Blueprint Primer's GUI by hand (or by
 -- xdotool) in a real client. Everything sits at known tile offsets from the
 -- player, who stands at the origin with zoom 1, so a machine at (dx, dy) is
 -- on screen at centre + 32 * (dx, dy) pixels.

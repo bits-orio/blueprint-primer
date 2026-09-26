@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2026-09-26
+  Features:
+    - Drag the primer tool over a row of machines of one kind to prime them all at once. The window reads "Prime 6 × Stone furnace", shows what robots will bring for the whole group, and Request tops up and fuels each machine on its own numbers.
+    - After such a drag, Blueprint takes the whole dragged area, belts and inserters included, with every machine of that kind primed.
+  Changes:
+    - Only machines light up while dragging the primer tool.
+    - A drag over mixed kinds primes the kind nearest the middle, outlines those machines, marks the skipped ones in red, and says so.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2026-09-26
   Features:
@@ -6,7 +15,6 @@ Date: 2026-09-26
     - Shift+click settings paste copies priming. Pasting from a primed machine gives the destination the same recipe, craft count and fuel, topped up for what it already holds and with its own fuel estimate.
     - Unresearched recipes can be picked. The recipe picker shows them on a red slot, and a chosen one carries vanilla's "not unlocked" sign; Blueprint always works, and Request works everywhere except a built furnace, which only accepts ingredients for researched recipes.
   Changes:
-    - Renamed to Machine Primer (formerly Blueprint Primer): it primes one machine at a time, not whole blueprints. The internal name is unchanged, so saves and the mod portal page carry over.
     - The recipe row opens the mod's own picker instead of vanilla's recipe chooser, so unresearched recipes can be marked.
     - A drag over several machines outlines the one it primes (the one nearest the middle) and says that priming works one machine at a time.
     - The primer tool leaves the cursor once it has picked a machine and the priming window opens. A pick that finds nothing primable keeps it in hand to try again.

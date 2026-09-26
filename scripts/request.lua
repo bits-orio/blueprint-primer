@@ -95,11 +95,12 @@ end
 
 -- Inventory ids are per entity type (1 is a car's fuel but also other
 -- things), so what we own depends on the kind of target.
-local function owned_inventories(t)
+function request.owned(t)
   local owned = { [defines.inventory.fuel] = true }
   if t.kind ~= const.KIND_FUEL_ONLY then owned[defines.inventory.crafter_input] = true end
   return owned
 end
+local owned_inventories = request.owned
 
 local function absorb_foreign(collector, plan, owned)
   local kept = {}

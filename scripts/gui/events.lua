@@ -8,6 +8,7 @@ local state = require("scripts.state")
 local target = require("scripts.target")
 local request = require("scripts.request")
 local blueprint = require("scripts.blueprint")
+local group = require("scripts.group")
 local names = require("scripts.gui.names")
 local picker = require("scripts.gui.picker")
 local priming = require("scripts.gui.priming")
@@ -73,12 +74,26 @@ local function submit(player, p, act, fallback)
   if message then window.notify(player, message) end
 end
 
-local function on_request(player, p)
-  submit(player, p, function() return request.apply(p.target, p) end, "bp-primer.request-failed")
+-- A group reports how many of its machines took the request; any that did
+-- not are counted, with the first reason given.
+local function request_group(player, p)
+  local done, total, reason = group.request(p, player.index)
+  if done == 0 then return false, reason end
+  if done == total then return true, { "bp-primer.requested-many", done } end
+  return true, { "bp-primer.requested-some", done, total, { reason or "bp-primer.request-failed" } }
 end
 
+local function on_request(player, p)
+  local act = function() return request.apply(p.target, p) end
+  if group.size(p) > 1 then act = function() return request_group(player, p) end end
+  submit(player, p, act, "bp-primer.request-failed")
+end
+
+-- A group's blueprint is its whole dragged area (ADR-0011).
 local function on_blueprint(player, p)
-  submit(player, p, function() return blueprint.to_cursor(player, p.target, p) end, "bp-primer.blueprint-failed")
+  local act = function() return blueprint.to_cursor(player, p.target, p) end
+  if group.size(p) > 1 then act = function() return group.to_cursor(player, p) end end
+  submit(player, p, act, "bp-primer.blueprint-failed")
 end
 
 local function on_recipe_slot(player, p)

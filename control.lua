@@ -1,4 +1,4 @@
--- Event wiring only: every handler lives under scripts/. Machine Primer
+-- Event wiring only: every handler lives under scripts/. Blueprint Primer
 -- registers no on_tick; everything it does answers a player action.
 
 local const = require("scripts.const")

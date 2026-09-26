@@ -7,8 +7,6 @@ local state = require("scripts.state")
 local target = require("scripts.target")
 local carried = require("scripts.carried")
 local fuel = require("scripts.fuel")
-local request = require("scripts.request")
-local priming = require("scripts.gui.priming")
 local window = require("scripts.gui.window")
 
 local paste = {}
@@ -23,8 +21,7 @@ function paste.apply(source, destination, force, player_index)
   local to = from and target.from_entity(destination, force)
   if not (to and to.kind == from.target.kind) then return nil end
   if from.fuel and to.burner and not fuel.accepts(to, from.fuel) then return nil end
-  local p = priming.new(to, player_index, from)
-  if priming.blocker(p) or not request.apply(to, p) then return nil end
+  if not carried.apply(to, from, player_index) then return nil end
   return to
 end
 

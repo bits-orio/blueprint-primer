@@ -2,7 +2,7 @@
 
 The window edits one number: the **craft count**. The player moves a slider (or types into the field beside it) in units of **output count**, and every ingredient amount follows in proportion, so the ingredients can never drift out of step with each other.
 
-The slider's maximum is the **slot cap**: the largest craft count whose every ingredient still fits its slot, where a slot holds one stack — or one craft's worth, when a single craft needs more than a stack (a satellite takes 100 low density structures at stack 50; robots were measured delivering over-stack amounts into one crafter slot through both a ghost plan and a proxy). Ingredients fill at different rates, so the tightest one decides — a recipe needing 1 of a 50-stack item and 5 of a 100-stack item caps at 20 crafts even though the second slot is only a fifth full.
+The slider's maximum is the **slot cap**: the largest craft count whose every ingredient still fits its slot, where a slot holds one stack, or one craft's worth when a single craft needs more than a stack (a satellite takes 100 low density structures at stack 50; robots were measured delivering over-stack amounts into one crafter slot through both a ghost plan and a proxy). Ingredients fill at different rates, so the tightest one decides, a recipe needing 1 of a 50-stack item and 5 of a 100-stack item caps at 20 crafts even though the second slot is only a fifth full.
 
 Half and Max buttons stand in for "half stack" and "full stack": Max is the slot cap, Half is half of it rounded down to a whole craft.
 

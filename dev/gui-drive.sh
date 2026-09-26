@@ -10,7 +10,12 @@
 set -uo pipefail
 RUN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.run/gui"
 PID=$(cat "$RUN/pid")
-W=$(xdotool search --pid "$PID" | head -1)
+# The first window a fresh client reports can be a short-lived splash that
+# is already gone; take the one that still answers with a Factorio title.
+W=""
+for id in $(xdotool search --pid "$PID" 2>/dev/null); do
+  case "$(xdotool getwindowname "$id" 2>/dev/null)" in Factorio*) W=$id ;; esac
+done
 [ -n "$W" ] || { echo "client window not found"; exit 1; }
 focus() { xdotool windowactivate --sync "$W" 2>/dev/null || { xdotool windowraise "$W"; xdotool windowfocus --sync "$W"; }; sleep 0.3; }
 cmd="$1"; shift

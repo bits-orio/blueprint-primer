@@ -1,15 +1,14 @@
 -- The primer tool: the selection tool through which every priming starts.
 -- Only-in-cursor and never craftable; the shortcut and the hotkey put it in
--- the cursor. A click or drag resolves to one target in script
--- (scripts/tool.lua), so the selection itself stays deliberately broad.
+-- the cursor. A click or drag resolves to one kind of machine in script
+-- (scripts/selection.lua); data-final-fixes.lua narrows what lights up.
 
 local const = require("scripts.const")
 
 -- "any-entity" does not promise to include ghosts, so "entity-ghost" is
--- listed explicitly; "same-force" only narrows the set. No entity filters:
--- whether an entity can be primed (crafter, or anything with a burner) is
--- a script decision, and prototype filters are not documented to see
--- through a ghost to its inner entity.
+-- listed explicitly; "same-force" only narrows the set. The entity filters
+-- are added in data-final-fixes (prototypes/tool_filters.lua), once every
+-- mod's machines exist.
 local function mode()
   return {
     border_color = { r = 0.35, g = 0.75, b = 0.95 },

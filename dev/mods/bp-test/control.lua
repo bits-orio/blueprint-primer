@@ -1,4 +1,4 @@
--- Headless contract and delivery tests for Machine Primer. Everything runs
+-- Headless contract and delivery tests for Blueprint Primer. Everything runs
 -- from on_init (tick 0) except the delivery checks, which wait for robots and
 -- furnaces to finish. dev/run-tests.sh reads the BP_TEST log lines.
 
@@ -17,6 +17,7 @@ local copy_cases = require("cases.copy")
 local paste_cases = require("cases.paste")
 local state_cases = require("cases.state")
 local research_cases = require("cases.research")
+local group_cases = require("cases.group")
 local delivery = require("cases.delivery")
 
 -- Long enough for robots to deliver and a stone furnace to smelt 50 ore.
@@ -40,6 +41,7 @@ script.on_init(function()
   priming_cases.run(surface)
   copy_cases.run(surface)
   research_cases.run(surface)
+  group_cases.run(surface)
   paste_cases.run(surface)
   state_cases.run(surface)
   if space_age() then

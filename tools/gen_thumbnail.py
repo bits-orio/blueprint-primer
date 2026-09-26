@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate thumbnail.png — the mod-portal card, in the house style shared
+"""Generate thumbnail.png: the mod-portal card, in the house style shared
 with Land Title Registry, Multi-Team Support and Open Discord Bridge:
 512x512, charcoal ground, a thin square frame, a letter mark, and a grey
 subtitle in caps.
 
 Simpler than Land Title Registry's card on purpose: this mod has no state
-ladder to color the letters by, so "MP" (Machine Primer) is drawn in one blue
+ladder to color the letters by, so "BP" is drawn in one blueprint blue
 rather than per-letter palette colors, with the same halo, frame and text
 geometry so the cards still line up in a row.
 
@@ -32,7 +32,7 @@ HALO = (0, 0, 0)
 HALO_RADIUS = 8
 HALO_STRENGTH = 1.5
 
-MARK = "MP"
+MARK = "BP"
 SUBTITLE = "EXACT REQUESTS"
 
 # Same centres Land Title Registry and Open Discord Bridge use, so the

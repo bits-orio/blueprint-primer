@@ -29,6 +29,7 @@ return {
   fuel_max = named("fuel_max"),
   fuel_note = named("fuel_note"),
   status = named("status"),
+  totals = named("totals"),
   blueprint = named("blueprint"),
   request = named("request"),
 }

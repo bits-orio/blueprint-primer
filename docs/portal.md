@@ -1,4 +1,4 @@
-# Machine Primer
+# Blueprint Primer
 
 > Exact item requests for one machine, not a whole stack.
 
@@ -8,7 +8,7 @@ Point the primer tool at a furnace or assembler, ghost or built, and ask for exa
 
 ## Status
 
-Formerly Blueprint Primer. This is a ground-up rewrite of the 1.1 version for Factorio 2.0, renamed because it works on one machine at a time. A 1.1 save that had the old version keeps working when opened in 2.0, but the old whole-blueprint window and its top-bar button are gone. Covered by a headless test suite in base and Space Age, and smoke-tested in the game client. Young, so expect rough edges.
+This is a ground-up rewrite of the 1.1 version for Factorio 2.0. A 1.1 save that had the old version keeps working when opened in 2.0, but the old whole-blueprint window and its top-bar button are gone. Covered by a headless test suite in base and Space Age, and smoke-tested in the game client. Young, so expect rough edges.
 
 ## Quick start
 
@@ -31,6 +31,7 @@ Formerly Blueprint Primer. This is a ground-up rewrite of the 1.1 version for Fa
 - Default fuel: what the machine already burns, else your last pick, else the earliest fuel (coal in vanilla)
 - Boilers, burner drills, burner inserters and locomotives get a fuel-only window, up to what their fuel slots hold
 - Primed blueprints copy the machine, recipe, and request into your cursor for stamping down a row
+- Drag over a row of one kind of machine to prime them all, or blueprint the whole area primed
 - Copy-paste, blueprints and Shift+click settings paste of a primed machine carry its request
 - Existing requests for other inventories, like modules, are left untouched
 
@@ -40,9 +41,9 @@ Standalone. No other mod is required, and it adds nothing to the top bar or side
 
 ## Works with
 
-Part of the MTS family. Machine Primer is fully standalone and needs nothing else installed, but it sits well beside:
+Part of the MTS family. Blueprint Primer is fully standalone and needs nothing else installed, but it sits well beside:
 
-- [Multi-Team Support](https://mods.factorio.com/mod/multi-team-support) gives every team its own copy of the map. Machine Primer's state is per player and per force, so every team primes its own machines.
+- [Multi-Team Support](https://mods.factorio.com/mod/multi-team-support) gives every team its own copy of the map. Blueprint Primer's state is per player and per force, so every team primes its own machines.
 - [Land Title Registry](https://mods.factorio.com/mod/land-title-registry) governs what you may build where. Priming builds nothing, and a primed blueprint obeys land rights like any other blueprint.
 
 ## Links

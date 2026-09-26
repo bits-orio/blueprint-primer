@@ -15,14 +15,20 @@ local SLOT = 40
 local OVERLAY = 32
 local ROW_SPACING = 8
 
-local function add_titlebar(frame, t)
+-- "Prime Stone furnace", or "Prime 6 × Stone furnace" for a group.
+local function title(t, count)
+  if count > 1 then return { "bp-primer.title-many", count, t.prototype.localised_name } end
+  return { "bp-primer.title", t.prototype.localised_name }
+end
+
+local function add_titlebar(frame, t, count)
   local bar = frame.add({ type = "flow", direction = "horizontal" })
   bar.style.horizontal_spacing = 8
   bar.drag_target = frame
   bar.add({
     type = "label",
     style = "frame_title",
-    caption = { "bp-primer.title", t.prototype.localised_name },
+    caption = title(t, count),
     ignored_by_interaction = true,
   })
   local filler = bar.add({ type = "empty-widget", style = "draggable_space_header" })
@@ -126,6 +132,9 @@ local function add_content(frame, t)
   local picker = content.add({ type = "frame", name = names.picker, style = "inside_deep_frame", direction = "vertical" })
   picker.style.top_margin = 8
   picker.visible = false
+  local totals = content.add({ type = "label", name = names.totals })
+  totals.style.top_margin = 8
+  totals.visible = false
   local status = content.add({ type = "label", name = names.status })
   status.style.top_margin = 8
   status.style.single_line = false
@@ -164,20 +173,26 @@ function window.close_all()
   end
 end
 
-function window.open(player, t)
+-- `picked` is a resolved drag (scripts/selection.lua), when the window was
+-- opened by one: its group and area travel in the Priming record.
+function window.open(player, t, picked)
   window.close(player)
-  state.player(player.index).priming = priming.new(t, player.index)
+  local p = priming.new(t, player.index)
+  if picked and #picked.group > 1 then p.group, p.area = picked.group, picked.area end
+  state.player(player.index).priming = p
   local frame = player.gui.screen.add({ type = "frame", name = names.window, direction = "vertical" })
   frame.auto_center = true
-  add_titlebar(frame, t)
+  add_titlebar(frame, t, p.group and #p.group or 1)
   add_content(frame, t)
   add_buttons(frame)
   player.opened = frame
   view.refresh(player)
 end
 
-function window.notify(player, message)
+-- At the cursor, or at a map position when given one.
+function window.notify(player, message, position)
   if type(message) == "string" then message = { message } end
+  if position then return player.create_local_flying_text({ text = message, position = position }) end
   player.create_local_flying_text({ text = message, create_at_cursor = true })
 end
 

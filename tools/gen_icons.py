@@ -12,7 +12,7 @@ The tool icon is opaque: a blueprint-blue rounded square (a printed
 blueprint card) carrying a white glyph, the same shape language as Land
 Title Registry's survey-tool.png. The two shortcut icons are transparent
 and light-on-dark only, glyph alone, matching every vanilla shortcut-bar
-icon (the bar itself supplies the dark chrome behind it) — see
+icon (the bar itself supplies the dark chrome behind it): see
 RateCalculator/graphics/shortcut-x32-white.png for the reference pattern.
 Mipmaps are not needed; these ship as single flat PNGs.
 
@@ -38,7 +38,7 @@ BADGE_CX, BADGE_CY, BADGE_R = 24.0, 24.0, 7.0
 
 def gear_points(ox, oy, s):
     """An 8-tooth gear as a polygon, in a local 32x32 unit grid at (ox, oy),
-    scaled by s — the universal "machine" silhouette, legible at any size
+    scaled by s: the universal "machine" silhouette, legible at any size
     because it is one shape with no internal detail to lose."""
     pts = []
     for i in range(TEETH * 2):
@@ -58,7 +58,7 @@ def draw_gear(d, ox, oy, s, color, hole_color):
 
 def draw_plus_badge(d, ox, oy, s, ring_color, fill_color, mark_color):
     """A small badge at the glyph's bottom-right corner: a ring (cut from
-    whatever sits behind it), a filled disc, and a bold plus — "a request
+    whatever sits behind it), a filled disc, and a bold plus: "a request
     going in"."""
     cx, cy, r = ox + BADGE_CX * s, oy + BADGE_CY * s, BADGE_R * s
     if ring_color is not None:

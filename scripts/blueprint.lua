@@ -86,16 +86,29 @@ function blueprint.write(stack, t, priming)
 end
 
 -- Temporary, like a vanilla copy: clearing the cursor discards it, while
--- putting it in the inventory by hand keeps it. A player with no cursor at
--- all (a spectator) is refused before anything is cleared.
-function blueprint.to_cursor(player, t, priming)
-  if not (player and player.valid) then return false, REASON.INVALID end
+-- putting it in the inventory by hand keeps it.
+-- The player's emptied cursor stack to write a blueprint into, or nil and
+-- why not. A player with no cursor at all (a spectator) is refused before
+-- anything is cleared.
+function blueprint.cursor(player)
+  if not (player and player.valid) then return nil, REASON.INVALID end
   local stack = player.cursor_stack
-  if not stack then return false, REASON.SPECTATOR end
-  if not player.clear_cursor() then return false, REASON.CURSOR_BLOCKED end
-  if not blueprint.write(stack, t, priming) then return false, REASON.CURSOR_BLOCKED end
+  if not stack then return nil, REASON.SPECTATOR end
+  if not player.clear_cursor() then return nil, REASON.CURSOR_BLOCKED end
+  return stack
+end
+
+-- Runs write(stack) on the cursor; temporary, like a vanilla copy.
+function blueprint.into_cursor(player, write)
+  local stack, why = blueprint.cursor(player)
+  if not stack then return false, why end
+  if not write(stack) then return false, REASON.CURSOR_BLOCKED end
   player.cursor_stack_temporary = true
   return true
+end
+
+function blueprint.to_cursor(player, t, priming)
+  return blueprint.into_cursor(player, function(stack) return blueprint.write(stack, t, priming) end)
 end
 
 return blueprint

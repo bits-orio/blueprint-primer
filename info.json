@@ -1,9 +1,9 @@
 {
   "name": "BlueprintPrimer",
-  "version": "0.3.0",
-  "title": "Machine Primer - exact item requests",
+  "version": "0.3.1",
+  "title": "Blueprint Primer - exact item requests",
   "author": "bits-orio",
-  "description": "Prime a furnace or assembler with the exact ingredients and fuel amounts its recipe needs, down to a partial stack. Boilers, burner drills and locomotives get just the fuel. Point it at a machine or a ghost, or stamp primed blueprints. Construction robots deliver the item request.",
+  "description": "Prime a furnace or assembler with the exact ingredients and fuel amounts its recipe needs, down to a partial stack. Drag over a row, ghost or built, to prime every machine of one kind, or stamp primed blueprints. Boilers, burner drills and locomotives get just the fuel. Construction robots deliver the item request.",
   "homepage": "https://discord.gg/tWz4FT74pH",
   "factorio_version": "2.0",
   "dependencies": [

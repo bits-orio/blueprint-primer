@@ -60,14 +60,14 @@ def main():
     # and bounce. The AI disclosure alone does not invite that.
     if ("Developed with AI coding assistants alongside human review and in-game testing."
             not in desc):
-        errors.append("the AI disclosure sentence is missing or reworded — it must be "
+        errors.append("the AI disclosure sentence is missing or reworded: it must be "
                       "identical across every mod in the family")
 
     lowered = desc.lower()
     for plea in ("keep the hate off", "human on the other side", "don't be rude",
                  "do not be rude", "please keep it kind", "anti-human"):
         if plea in lowered:
-            errors.append(f"anti-harassment plea in the description: {plea!r} — "
+            errors.append(f"anti-harassment plea in the description: {plea!r}: "
                           "the AI disclosure stands alone")
 
     if "img.shields.io/badge/Discord" not in desc:
@@ -84,24 +84,28 @@ def main():
         errors.append("summary is empty")
     if len(summary) > SUMMARY_MAX:
         errors.append(f"summary is {len(summary)} chars, max {SUMMARY_MAX}")
+    # House rule: no em dashes anywhere in portal copy; they read as AI-written.
+    for field, text in (("title", meta.get("title", "")), ("summary", summary), ("description", desc)):
+        if "\u2014" in text:
+            errors.append(f"{field} contains an em dash: use a comma, colon or parentheses")
     for hedge in ("WIP", "may have bugs", "please report", "beta"):
         if hedge.lower() in summary.lower():
-            errors.append(f"summary contains the hedge {hedge!r} — move it to Status")
+            errors.append(f"summary contains the hedge {hedge!r}: move it to Status")
 
     category = meta.get("category")
     if category not in CATEGORIES:
         errors.append(f"category {category!r} is not a valid portal category")
     if category == "no-category":
-        errors.append("category is no-category — every mod must have a real one")
+        errors.append("category is no-category: every mod must have a real one")
 
     tags = meta.get("tags") or []
     waiver = meta.get("tags_intentionally_empty")
     if not tags and not waiver:
-        errors.append("tag list is empty — the mod is invisible to every tag filter. "
+        errors.append("tag list is empty: the mod is invisible to every tag filter. "
                       "If no tag in the vocabulary is honestly true, say so explicitly "
                       "in a tags_intentionally_empty field.")
     if tags and waiver:
-        errors.append("tags_intentionally_empty is set but tags are present — drop one")
+        errors.append("tags_intentionally_empty is set but tags are present: drop one")
     for tag in tags:
         if tag not in TAGS:
             errors.append(f"tag {tag!r} is not in the live portal vocabulary")
@@ -116,7 +120,7 @@ def main():
         for e in errors:
             print(f"  - {e}", file=sys.stderr)
         return 1
-    print(f"portal lint OK — {len(desc)} chars, {len(found)} emoji, "
+    print(f"portal lint OK: {len(desc)} chars, {len(found)} emoji, "
           f"summary {len(summary)} chars, {len(tags)} tags")
     return 0
 

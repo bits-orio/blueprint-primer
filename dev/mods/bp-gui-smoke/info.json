@@ -1,7 +1,7 @@
 {
   "name": "bp-gui-smoke",
   "version": "0.0.1",
-  "title": "Machine Primer GUI smoke world",
+  "title": "Blueprint Primer GUI smoke world",
   "author": "bits-orio",
   "factorio_version": "2.0",
   "description": "Dev-only: lays out a small world of primable machines around the player for driving the real GUI in a graphical client. Never shipped.",

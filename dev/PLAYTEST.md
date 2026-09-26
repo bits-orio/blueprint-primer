@@ -9,7 +9,7 @@ Each line is an action, then the expected result.
 - [ ] Shortcut bar: the primer button shows its icon, and its tooltip names ALT + P.
 - [ ] Click the button: the primer tool is in the cursor. Click again: it is gone.
 - [ ] Click the recipe slot: the picker opens with vanilla-style group tabs; unresearched recipes (steel plate early on) sit on red slots. Pick one: the slot turns red with the "not unlocked" sign, and the note explains. On a built furnace Request is disabled; on a ghost it stays enabled; Blueprint always works.
-- [ ] Drag the tool over two or more machines: the one nearest the middle blinks with an outline for about 1.5 s, flying text says it primes one machine at a time, and its window opens. A drag over one machine shows no hint.
+- [ ] Drag the tool: only machines light up while dragging. Over a row of one kind: all are outlined (copy colour), the title reads "Prime N × <machine>", a totals line appears once a recipe is set, Request primes every one (built ones topped up), Blueprint takes the whole dragged area with them primed. Over mixed kinds: the kind nearest the middle wins, the others are outlined in red, and flying text above the drag says one kind at a time. A drag over one machine shows no hint.
 - [ ] With the tool, click a furnace: the window opens and the tool has left the cursor. Click bare ground: the tool stays in hand.
 - [ ] Hover a furnace and press ALT + P: its priming window opens. Hover bare ground and press ALT + P: the tool is in the cursor.
 - [ ] Hover a rocket silo and press ALT + P: flying text says this kind of crafting machine cannot be primed, and the cursor is unchanged. Hover a chest or a tree: the tool is toggled, with no message.

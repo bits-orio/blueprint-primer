@@ -5,6 +5,7 @@
 local const = require("scripts.const")
 local target = require("scripts.target")
 local pending = require("scripts.pending")
+local request = require("scripts.request")
 local priming = require("scripts.gui.priming")
 
 local carried = {}
@@ -19,6 +20,16 @@ function carried.priming(entity, force, player_index)
   local p = priming.new(t, player_index)
   if priming.blocker(p) then return nil end
   return p
+end
+
+-- Primes `to` like `from`: the same recipe, crafts and fuel, fitted to this
+-- machine (its own cap, top-up and fuel estimate unless the amount was
+-- typed). Shared by settings paste and a group Request (ADR-0011).
+function carried.apply(to, from, player_index)
+  local p = priming.new(to, player_index, from)
+  local blocked = priming.blocker(p)
+  if blocked then return false, blocked end
+  return request.apply(to, p)
 end
 
 return carried

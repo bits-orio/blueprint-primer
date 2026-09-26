@@ -1,64 +1,14 @@
 -- The three ways into the priming window: the primer tool's selection, the
--- shortcut-bar button, and the hover hotkey. Each resolves one target and
--- opens the window, or hands the player the tool to pick one.
+-- shortcut-bar button, and the hover hotkey. A drag resolves one kind of
+-- machine (scripts/selection.lua); the hotkey, one machine. Each opens the
+-- window, or hands the player the tool to pick with.
 
 local const = require("scripts.const")
 local target = require("scripts.target")
+local selection = require("scripts.selection")
 local window = require("scripts.gui.window")
 
 local tool = {}
-
--- BoundingBox and MapPosition arrive either keyed or positional.
-local function xy(position)
-  return position.x or position[1], position.y or position[2]
-end
-
-local function centre(area)
-  local x1, y1 = xy(area.left_top or area[1])
-  local x2, y2 = xy(area.right_bottom or area[2])
-  return (x1 + x2) / 2, (y1 + y2) / 2
-end
-
-local function distance_sq(entity, cx, cy)
-  local x, y = xy(entity.position)
-  return (x - cx) ^ 2 + (y - cy) ^ 2
-end
-
--- Nearest the drag's centre wins (ADR-0001). target.from_entity only runs
--- on entities closer than the best so far, so a drag across a whole base
--- stays cheap. Returns the target, the reason the nearest entity failed,
--- and how many machines the drag covered.
-local function nearest_target(entities, area, force)
-  local cx, cy = centre(area)
-  local best, best_distance, reason, reason_distance
-  local machines = 0
-  for _, entity in pairs(entities) do
-    if target.is_machine(entity) then machines = machines + 1 end
-    local distance = entity.valid and distance_sq(entity, cx, cy)
-    if distance and (not best_distance or distance < best_distance) then
-      local t, why = target.from_entity(entity, force)
-      if t then
-        best, best_distance = t, distance
-      elseif not reason_distance or distance < reason_distance then
-        reason, reason_distance = why, distance
-      end
-    end
-  end
-  return best, reason, machines
-end
-
--- A drag over several machines still primes one (ADR-0001). Say so gently:
--- outline the one picked, for this player only, the way vanilla outlines a
--- copy source, and a line of flying text.
-local function hint_one_machine(player, t)
-  local entity = t.entity
-  entity.surface.create_entity({
-    name = "highlight-box", position = entity.position, bounding_box = entity.selection_box,
-    box_type = "copy", render_player_index = player.index,
-    time_to_live = const.HINT_TICKS, blink_interval = const.HINT_BLINK_TICKS,
-  })
-  window.notify(player, const.NOTICE.ONE_MACHINE)
-end
 
 local function holding_tool(player)
   local cursor = player.cursor_stack
@@ -68,9 +18,39 @@ end
 -- Once a machine is picked the tool has done its job, so it leaves the
 -- cursor as the window opens. Only the tool is ever cleared: anything else
 -- the player holds stays put.
-local function open(player, t)
+local function open(player, t, picked)
   if holding_tool(player) then player.clear_cursor() end
-  window.open(player, t)
+  window.open(player, t, picked)
+end
+
+local function outline(player, entity, box_type)
+  entity.surface.create_entity({
+    name = "highlight-box", position = entity.position, bounding_box = entity.selection_box,
+    box_type = box_type, render_player_index = player.index,
+    time_to_live = const.HINT_TICKS, blink_interval = const.HINT_BLINK_TICKS,
+  })
+end
+
+-- Just above the middle of the dragged area, where the eye already is; the
+-- cursor sits at the drag's far corner, often at the screen edge.
+local function above(area)
+  local left_top, right_bottom = area.left_top or area[1], area.right_bottom or area[2]
+  local x1, y1 = left_top.x or left_top[1], left_top.y or left_top[2]
+  local x2 = right_bottom.x or right_bottom[1]
+  return { x = (x1 + x2) / 2, y = y1 - 1 }
+end
+
+-- After a drag over several machines, show briefly which are being primed
+-- (vanilla's copy colour) and which were skipped as another kind (its red
+-- "not allowed"), for this player only (ADR-0011). Skipping also gets a
+-- line of flying text naming what is primed.
+local function hint(player, picked)
+  if #picked.group < 2 and #picked.skipped == 0 then return end
+  for _, t in ipairs(picked.group) do outline(player, t.entity, "copy") end
+  for _, entity in ipairs(picked.skipped) do outline(player, entity, "not-allowed") end
+  if #picked.skipped == 0 then return end
+  window.notify(player, { const.NOTICE.ONE_KIND, #picked.group, picked.primary.prototype.localised_name, #picked.skipped },
+    above(picked.area))
 end
 
 -- Pressing the button while already holding the tool puts it away, like
@@ -97,13 +77,11 @@ end
 function tool.on_selected(event)
   local player = game.get_player(event.player_index)
   if not (player and player.valid) then return end
-  local t, reason, machines = nearest_target(event.entities or {}, event.area, player.force)
-  if t then
-    open(player, t)
-    if machines > 1 then hint_one_machine(player, t) end
-    return
-  end
-  window.notify(player, reason or "bp-primer.nothing-to-prime")
+  local picked, reason = selection.resolve(event.entities or {}, event.area, player.force)
+  if not picked then return window.notify(player, reason or "bp-primer.nothing-to-prime") end
+  picked.area = event.area
+  open(player, picked.primary, picked)
+  hint(player, picked)
 end
 
 function tool.on_shortcut(event)

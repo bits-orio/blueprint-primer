@@ -79,7 +79,7 @@ const.NOTICE = {
   RECIPE_CHANGED  = "bp-primer.recipe-changed",
   NOT_RESEARCHED  = "bp-primer.not-researched",
   FURNACE_NOT_RESEARCHED_YET = "bp-primer.furnace-not-researched-yet",
-  ONE_MACHINE     = "bp-primer.one-machine",
+  ONE_KIND        = "bp-primer.one-kind",
 }
 
 return const
