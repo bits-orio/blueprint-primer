@@ -8,11 +8,11 @@ Point the primer tool at a furnace, assembler or chest, ghost or built, and ask 
 
 ## Status
 
-This is a ground-up rewrite of the 1.1 version for Factorio 2.0. A 1.1 save that had the old version keeps working when opened in 2.0, but the old whole-blueprint window and its top-bar button are gone. Covered by a headless test suite in base and Space Age, and smoke-tested in the game client. Young, so expect rough edges. A chest's recipe list holds every crafting recipe in the game, so it is long with Space Age.
+This is a ground-up rewrite of the 1.1 version for Factorio 2.0 and 2.1: 0.3.x releases are for 2.0 and 0.4.x for 2.1, with the same features. A 1.1 save that had the old version keeps working when opened in 2.0, but the old whole-blueprint window and its top-bar button are gone. Covered by a headless test suite in base and Space Age, and smoke-tested in the game client. Young, so expect rough edges. A chest's recipe list holds every crafting recipe in the game, so it is long with Space Age.
 
 ## Quick start
 
-1. Install the mod and start or load a 2.0 game.
+1. Install the mod and start or load a 2.0 or 2.1 game.
 2. Grab the primer tool from the shortcut bar, or hover a furnace, assembler or chest and press ALT + P.
 3. With the tool, click it to open the priming window (ALT + P skips this step).
 4. Pick a recipe and drag the output slider to the amount you want; ingredients and fuel scale with it automatically. A chest can do the same, or switch to Items mode to list exact items and counts instead.
