@@ -44,12 +44,15 @@ local function add_slots(parent, t, recipes)
   end
 end
 
--- One group needs no tabs; several get vanilla's group tabs.
-local function add_groups(frame, t)
+-- One group needs no tabs; several get vanilla's group tabs, opening on the
+-- current recipe's group, else the first (the engine would show the last).
+local function add_groups(frame, t, current)
   local groups, order = by_group(t)
   if #order == 1 then return add_slots(frame, t, groups[order[1]]) end
   local tabs = frame.add({ type = "tabbed-pane" })
-  for _, group in ipairs(order) do
+  local selected = 1
+  for i, group in ipairs(order) do
+    if current and prototypes.recipe[current] and prototypes.recipe[current].group.name == group then selected = i end
     local tab = tabs.add({
       type = "tab", caption = "[item-group=" .. group .. "]",
       tooltip = prototypes.item_group[group].localised_name,
@@ -58,6 +61,7 @@ local function add_groups(frame, t)
     add_slots(page, t, groups[group])
     tabs.add_tab(tab, page)
   end
+  tabs.selected_tab_index = selected
 end
 
 function picker.is_open(container)
@@ -69,9 +73,9 @@ function picker.close(container)
   container.visible = false
 end
 
-function picker.toggle(container, t)
+function picker.toggle(container, t, current)
   if picker.is_open(container) then return picker.close(container) end
-  add_groups(container, t)
+  add_groups(container, t, current)
   container.visible = true
 end
 

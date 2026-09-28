@@ -98,7 +98,7 @@ end
 
 local function on_recipe_slot(player, p)
   local container = view.find(player, names.picker)
-  if container then picker.toggle(container, p.target) end
+  if container then picker.toggle(container, p.target, p.recipe) end
 end
 
 -- Any listed recipe is allowed, researched or not (ADR-0009); a refusal

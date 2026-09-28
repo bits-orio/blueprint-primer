@@ -8,8 +8,10 @@
 #   tools/portal_meta.json  -> title, summary, category, tags, license,
 #                              homepage, source_url, deprecated
 #
-# The gallery images and the thumbnail are NOT settable through the API and so
-# cannot be tracked here -- they stay manual on the site.
+# Not synced here: the thumbnail comes from thumbnail.png inside each uploaded
+# release zip, and the gallery is set through the separate images API
+# (POST /api/v2/mods/images/add, then images/edit with the ordered ids;
+# https://wiki.factorio.com/Mod_images_API).
 #
 # Usage: tools/sync_portal_details.sh [--dry-run|--check]
 #   --dry-run  print what would be sent, send nothing
