@@ -26,17 +26,21 @@ local function index_of(list, name)
   end
 end
 
-local function candidate_lists()
-  local furnace = target.recipe_candidates(prototypes.entity["stone-furnace"])
+local function candidates_of(surface, name, dx)
+  return target.recipe_candidates(assert(target.from_entity(rig.ghost(surface, name, rig.at(dx, Y + 3)), rig.FORCE)))
+end
+
+local function candidate_lists(surface)
+  local furnace = candidates_of(surface, "stone-furnace", -30)
   check.truthy("research candidates for a furnace list its smelting recipes",
     index_of(furnace, "iron-plate") and index_of(furnace, "steel-plate") and index_of(furnace, "stone-brick"))
   check.eq("research candidates for a furnace skip multi-item recipes", index_of(furnace, "iron-gear-wheel"), nil)
-  local assembler = target.recipe_candidates(prototypes.entity["assembling-machine-2"])
+  local assembler = candidates_of(surface, "assembling-machine-2", -26)
   check.truthy("research candidates for an assembler include engine units", index_of(assembler, "engine-unit"))
   local parameter = false
   for _, name in ipairs(assembler) do parameter = parameter or prototypes.recipe[name].parameter end
   check.eq("research candidates never list blueprint parameters", parameter, false)
-  check.eq("research candidates are memoised", target.recipe_candidates(prototypes.entity["assembling-machine-2"]), assembler)
+  check.eq("research candidates are memoised", candidates_of(surface, "assembling-machine-2", -22), assembler)
 end
 
 local function assembler_cases(surface)
@@ -69,7 +73,7 @@ local function furnace_cases(surface)
 end
 
 function cases.run(surface)
-  check.run("research.candidates", candidate_lists)
+  check.run("research.candidates", function() candidate_lists(surface) end)
   check.run("research.assembler", function() assembler_cases(surface) end)
   check.run("research.furnace", function() furnace_cases(surface) end)
 end

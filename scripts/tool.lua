@@ -1,6 +1,6 @@
 -- The three ways into the priming window: the primer tool's selection, the
 -- shortcut-bar button, and the hover hotkey. A drag resolves one kind of
--- machine (scripts/selection.lua); the hotkey, one machine. Each opens the
+-- machine or chest (scripts/selection.lua); the hotkey, one. Each opens the
 -- window, or hands the player the tool to pick with.
 
 local const = require("scripts.const")
@@ -49,7 +49,10 @@ local function hint(player, picked)
   for _, t in ipairs(picked.group) do outline(player, t.entity, "copy") end
   for _, entity in ipairs(picked.skipped) do outline(player, entity, "not-allowed") end
   if #picked.skipped == 0 then return end
-  window.notify(player, { const.NOTICE.ONE_KIND, #picked.group, picked.primary.prototype.localised_name, #picked.skipped },
+  -- A chest group is also one quality (selection.member); a machine group
+  -- is not, so only the chest wording claims it.
+  local notice = picked.primary.kind == const.KIND_CHEST and const.NOTICE.ONE_KIND_QUALITY or const.NOTICE.ONE_KIND
+  window.notify(player, { notice, #picked.group, picked.primary.prototype.localised_name, #picked.skipped },
     above(picked.area))
 end
 
@@ -66,19 +69,51 @@ local function toggle_tool(player)
   cursor.set_stack({ name = const.TOOL })
 end
 
--- A hovered machine the tool could never prime says why, as a click with
--- the tool would. Anything else hovered (a chest, a tree, bare ground)
+-- A hovered machine or chest the tool could never prime says why, as a
+-- click with the tool would. Anything else hovered (a tree, bare ground)
 -- hands over the tool instead; a neutral tree must not claim another force.
 local function refusal_worth_saying(entity, why)
-  if why == const.REASON.UNSUPPORTED then return true end
+  if why == const.REASON.UNSUPPORTED or why == const.REASON.LOGISTIC_CHEST then return true end
   return why == const.REASON.OTHER_FORCE and target.from_entity(entity) ~= nil
+end
+
+-- The tool's entity filters leave logistic chests out, so a click on one
+-- selects nothing; it still gets told why, not "nothing to prime". A click's
+-- area is a single point, which misses the outer ring of the chest's
+-- selection box (that box is what the engine actually clicked against), so
+-- player.selected is checked first; the area search is only a fallback for
+-- a drag, which has no player.selected of its own.
+local function logistic_chest_selected(player)
+  local selected = player.selected
+  if not (selected and selected.valid and selected.force.index == player.force.index) then return false end
+  if selected.type == const.LOGISTIC_CHEST_TYPE then return true end
+  return selected.type == const.GHOST_TYPE and selected.ghost_type == const.LOGISTIC_CHEST_TYPE
+end
+
+local function logistic_chest_in(event, force)
+  local surface = event.surface
+  if not (surface and surface.valid) then return false end
+  local built = surface.find_entities_filtered({
+    area = event.area, type = const.LOGISTIC_CHEST_TYPE, force = force, limit = 1,
+  })
+  if #built > 0 then return true end
+  return #surface.find_entities_filtered({
+    area = event.area, type = const.GHOST_TYPE, ghost_type = const.LOGISTIC_CHEST_TYPE, force = force, limit = 1,
+  }) > 0
+end
+
+local function nothing_to_prime(event, player, reason)
+  if not reason and (logistic_chest_selected(player) or logistic_chest_in(event, player.force)) then
+    reason = const.REASON.LOGISTIC_CHEST
+  end
+  window.notify(player, reason or "bp-primer.nothing-to-prime")
 end
 
 function tool.on_selected(event)
   local player = game.get_player(event.player_index)
   if not (player and player.valid) then return end
   local picked, reason = selection.resolve(event.entities or {}, event.area, player.force)
-  if not picked then return window.notify(player, reason or "bp-primer.nothing-to-prime") end
+  if not picked then return nothing_to_prime(event, player, reason) end
   picked.area = event.area
   open(player, picked.primary, picked)
   hint(player, picked)

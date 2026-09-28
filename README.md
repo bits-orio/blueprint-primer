@@ -1,8 +1,8 @@
 # Blueprint Primer
 
-Exact, partial item requests for a single machine. Vanilla 2.0 lets you request items into a machine's ingredient slots, but only in whole stacks, so there is no way to ask a furnace for 10 ore. Blueprint Primer fixes that: point it at a furnace or assembler, ghost or built, choose a recipe and a craft count, and it writes an exact request for exactly that much. Construction robots do the delivering; the mod only writes the request.
+Exact, partial item requests for a machine or a chest. Vanilla 2.0 lets you request items into a machine's ingredient slots, or into a chest, but only in whole stacks, so there is no way to ask a furnace for 10 ore or a chest for 600 plate. Blueprint Primer fixes that: point it at a furnace, assembler or chest, ghost or built, and it writes an exact request instead. A machine gets a recipe and a craft count; a chest gets the same, or a table of exact items and counts when there's no recipe to point at. Construction robots do the delivering; the mod only writes the request.
 
-It's for anyone who is tired of a fresh furnace eating a full stack of ore and half a stack of coal for a batch they only needed ten of, or who wants to stamp down a row of identically-primed furnaces from one blueprint.
+It's for anyone who is tired of a fresh furnace eating a full stack of ore and half a stack of coal for a batch they only needed ten of, wants a chest stocked with exactly what it needs and nothing else, or wants to stamp down a row of identically-primed furnaces from one blueprint.
 
 ## Status
 
@@ -11,11 +11,17 @@ This is a ground-up rewrite of the 1.1 version for Factorio 2.0. A 1.1 save that
 ## Quick start
 
 1. Install the mod and start or load a 2.0 game.
-2. Grab the primer tool from the shortcut bar, or press **ALT + P** while hovering a furnace or assembler (ghost or built).
-3. With the tool, click the machine to open the priming window (ALT + P skips this step).
-4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want. Recipes you have not researched yet show on a red slot; you can still pick them to plan ahead.
-5. Hit **Request** to write the request onto that machine, or **Blueprint** to take a primed copy of it into your cursor instead.
-6. To prime a whole row, drag the tool over it: every machine of the same kind as the one nearest the middle is primed with the same numbers, and Blueprint then takes the whole dragged area with those machines primed. Copy-paste and Shift+click settings paste of a primed machine work too.
+2. Grab the primer tool from the shortcut bar, or press **ALT + P** while hovering a furnace, assembler or chest (ghost or built).
+3. With the tool, click it to open the priming window (ALT + P skips this step).
+4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want. Recipes you have not researched yet show on a red slot; you can still pick them to plan ahead. A chest offers the same slider, or switch it to Items mode to list exact items and counts instead.
+5. Hit **Request** to write the request onto that machine or chest, or **Blueprint** to take a primed copy of it into your cursor instead.
+6. To prime a whole row, drag the tool over it: every machine or chest of the same kind as the one nearest the middle is primed with the same numbers, and Blueprint then takes the whole dragged area with those primed. Copy-paste and Shift+click settings paste of a primed machine or chest work too.
+
+## Chests
+
+A chest has no recipe of its own, so its window offers two modes. **Recipe** mode works exactly like a machine's: pick a recipe and a craft count, and the chest requests that recipe's ingredients, capped by how much a fresh chest of its size can hold. If the chest is already feeding a machine through an inserter, it opens straight onto that machine's recipe. **Items** mode skips recipes entirely: add a row per item, and set each one with Half, Max, a slots slider, or a typed count, up to what the chest has room for beside the other rows.
+
+Logistic chests (storage, provider, buffer and requester) can't be primed: they hand their contents to the robot network, or trash anything they didn't ask for, so a primed request wouldn't stay put. A chest feeding a machine only stages the machine's ingredients; fuel is still requested straight into the machine itself.
 
 ## Fuel-only machines
 
@@ -47,6 +53,8 @@ The default fuel is whatever a built machine is already burning, at its quality 
 - One machine at a time. A primed blueprint holds exactly one entity; there's no multi-machine blueprint priming (see `docs/adr/0001-one-machine-at-a-time.md`).
 - Copies, blueprints and Shift+click settings paste carry a machine's priming only while its ingredients are still pending (the copy then gets the full amounts and fuel). Once robots have delivered the ingredients there is nothing to carry, the same as vanilla's fuel requests (see `docs/adr/0008-copies-and-settings-paste-carry-pending-requests.md`).
 - Fluid ingredients can't be requested: the window flags them and leaves them out of the slider's cap.
+- Logistic chests (storage, provider, buffer, requester) can't be primed: robots would move a primed request right back out of them, or trash it (see `docs/adr/0012-chests-are-primed-like-machines.md`).
+- A chest's Recipe mode offers every recipe any furnace or assembler could run, not just ones you happen to have nearby, so with Space Age it's a long list.
 - No inventory-transfer button. Requests wait for construction robots, exactly like any other vanilla request (see `docs/adr/0002-requests-only-robots-deliver.md`).
 
 ## Links

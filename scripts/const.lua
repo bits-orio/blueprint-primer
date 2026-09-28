@@ -17,6 +17,23 @@ const.FUEL_MARGIN_SECONDS = 1
 const.KIND_ASSEMBLER = "assembler"
 const.KIND_FURNACE   = "furnace"
 const.KIND_FUEL_ONLY = "fuel-only"
+const.KIND_CHEST     = "chest"
+
+-- Families (ADR-0011): a drag primes one kind and skips the other kinds of
+-- its family; the other family is ignored silently.
+const.FAMILY_MACHINE = "machine"
+const.FAMILY_CHEST   = "chest"
+
+-- A chest is a plain container: a filtered, custom-stack or weight-limited
+-- inventory drops or truncates slot-targeted requests. Shared with the data
+-- stage (prototypes/tool_filters.lua), so what lights up is what primes.
+const.CHEST_TYPE           = "container"
+const.LOGISTIC_CHEST_TYPE  = "logistic-container"
+const.CHEST_INVENTORY_TYPES = { ["normal"] = true, ["with_bar"] = true }
+
+-- A chest window's two modes (ADR-0013).
+const.MODE_RECIPE = "recipe"
+const.MODE_ITEMS  = "items"
 
 -- Every prototype type that runs recipes. Only CRAFTER_TYPES among them can
 -- be primed; the rest (rocket silos) are refused rather than treated as fuel-only.
@@ -69,7 +86,11 @@ const.REASON = {
   PICK_RECIPE         = "bp-primer.pick-recipe",
   RECIPE_NOT_PRIMABLE = "bp-primer.recipe-not-primable",
   CAP_ZERO            = "bp-primer.cap-zero",
+  CHEST_CAP_ZERO      = "bp-primer.chest-cap-zero",
   SPECTATOR           = "bp-primer.spectator",
+  LOGISTIC_CHEST      = "bp-primer.logistic-chest",
+  CHEST_FULL          = "bp-primer.chest-full",
+  NO_ITEMS            = "bp-primer.no-items",
 }
 
 -- Notices returned alongside success (`true, notice`), also locale keys.
@@ -80,6 +101,11 @@ const.NOTICE = {
   NOT_RESEARCHED  = "bp-primer.not-researched",
   FURNACE_NOT_RESEARCHED_YET = "bp-primer.furnace-not-researched-yet",
   ONE_KIND        = "bp-primer.one-kind",
+  ONE_KIND_QUALITY = "bp-primer.one-kind-quality",
+  ITEM_LISTED     = "bp-primer.item-listed",
+  CHEST_NO_ROOM   = "bp-primer.chest-no-room",
+  CHEST_NOT_RESEARCHED = "bp-primer.chest-not-researched",
+  CHEST_FULL_GROUP = "bp-primer.chest-full-group",
 }
 
 return const

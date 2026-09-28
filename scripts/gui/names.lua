@@ -28,6 +28,21 @@ return {
   fuel_half = named("fuel_half"),
   fuel_max = named("fuel_max"),
   fuel_note = named("fuel_note"),
+  -- A chest window's own: the mode switch, items mode's block, its list of
+  -- lines and trailing chooser, and the slots caption.
+  mode = named("mode"),
+  items = named("items"),
+  item_rows = named("item_rows"),
+  item_add = named("item_add"),
+  slots = named("slots"),
+  -- Handlers every items line shares, in its elements' tags; each element's
+  -- own name is one of these plus "_" and the row id.
+  row_item = named("row_item"),
+  row_slider = named("row_slider"),
+  row_slots = named("row_slots"),
+  row_count = named("row_count"),
+  row_half = named("row_half"),
+  row_max = named("row_max"),
   status = named("status"),
   totals = named("totals"),
   blueprint = named("blueprint"),

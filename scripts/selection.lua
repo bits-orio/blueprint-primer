@@ -1,8 +1,11 @@
--- Resolve a click or drag into the machines to prime (ADR-0011): the one
--- nearest the middle picks the kind, and every selected machine of that
--- same prototype and kind joins its group. Other machines are skipped,
--- because their fuel use, and so their numbers, differ.
+-- Resolve a click or drag into the machines or chests to prime (ADR-0011):
+-- the one nearest the middle, of either family, picks the kind, and every
+-- selected entity of that same prototype and kind joins its group. Other
+-- kinds of its family are skipped, because their numbers differ; the other
+-- family is ignored silently (a drag over a furnace row that clips its
+-- output chests primes the furnaces).
 
+local const = require("scripts.const")
 local target = require("scripts.target")
 
 local selection = {}
@@ -23,9 +26,10 @@ local function distance_sq(entity, cx, cy)
   return (x - cx) ^ 2 + (y - cy) ^ 2
 end
 
--- Nearest the drag's centre picks the kind. target.from_entity only runs on
--- entities closer than the best so far, so a drag across a whole base stays
--- cheap. Returns the target, or the reason the nearest entity failed.
+-- Nearest the drag's centre picks the kind, machine or chest.
+-- target.from_entity only runs on entities closer than the best so far, so
+-- a drag across a whole base stays cheap. Returns the target, or the reason
+-- the nearest entity failed.
 local function nearest(entities, cx, cy, force)
   local best, best_distance, reason, reason_distance
   for _, entity in pairs(entities) do
@@ -47,27 +51,34 @@ local function inner_name(entity)
 end
 
 -- Same prototype is not quite enough: the kind is per entity (a biochamber
--- cracking oil is fuel-only), so it must match too.
+-- cracking oil is fuel-only), so it must match too. A chest of another
+-- quality is not a member either, because quality changes its slot count
+-- (chest cap, row caps); it goes to skipped instead. Machines keep grouping
+-- across qualities.
 local function member(entity, primary, force)
   if entity == primary.entity then return primary end
   if inner_name(entity) ~= primary.name then return nil end
   local t = target.from_entity(entity, force)
-  return t and t.kind == primary.kind and t or nil
+  if not (t and t.kind == primary.kind) then return nil end
+  if t.kind == const.KIND_CHEST and t.quality ~= primary.quality then return nil end
+  return t
 end
 
 -- { primary, group = { Target... }, skipped = { LuaEntity... } }, or nil and
--- the reason the nearest entity cannot be primed. The primary comes first.
+-- the reason the nearest entity cannot be primed. The primary comes first;
+-- skipped holds only other kinds of the primary's family.
 function selection.resolve(entities, area, force)
   local cx, cy = centre(area)
   local primary, reason = nearest(entities, cx, cy, force)
   if not primary then return nil, reason end
+  local family = target.family(primary.entity)
   local group, skipped = { primary }, {}
   for _, entity in pairs(entities) do
     if entity.valid and entity ~= primary.entity then
       local t = member(entity, primary, force)
       if t then
         group[#group + 1] = t
-      elseif target.is_machine(entity) then
+      elseif target.family(entity) == family then
         skipped[#skipped + 1] = entity
       end
     end

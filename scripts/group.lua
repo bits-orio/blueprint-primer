@@ -1,12 +1,13 @@
--- A Priming's group: every machine of one kind a drag selected (ADR-0011).
--- The window edits one set of numbers; each member is primed like it
--- through carried.apply, the path Shift+click paste uses, so each machine
--- is topped up and fuelled on its own numbers.
+-- A Priming's group: every machine (or chest) of one kind a drag selected
+-- (ADR-0011). The window edits one set of numbers; each member is primed
+-- like it through carried.apply, the path Shift+click paste uses, so each
+-- one is topped up and fuelled on its own numbers.
 
 local const = require("scripts.const")
 local target = require("scripts.target")
 local request = require("scripts.request")
 local carried = require("scripts.carried")
+local copy = require("scripts.copy")
 local blueprint = require("scripts.blueprint")
 local priming = require("scripts.gui.priming")
 
@@ -38,9 +39,20 @@ function group.request(p, player_index)
   return done, #members, reason
 end
 
+-- Adds one plan's positions to the sums, keyed by item and quality.
+local function sum_plan(plan, sums, order)
+  local id = plan.id
+  local key = id.name .. "/" .. (id.quality or const.NORMAL_QUALITY)
+  if not sums[key] then
+    sums[key] = 0
+    order[#order + 1] = { key = key, name = id.name, quality = id.quality }
+  end
+  for _, position in ipairs(plan.items.in_inventory) do sums[key] = sums[key] + (position.count or 1) end
+end
+
 -- What robots will bring for the whole group, before topping up: the full
--- per-machine plans summed, as rich-text "[item=x]n" pairs. Members share a
--- prototype, so plans are computed once per quality.
+-- per-member plans summed per item and quality, as rich-text "[item=x]n"
+-- pairs. Members share a prototype, so plans are computed once per quality.
 function group.totals(p, player_index)
   local by_quality, sums, order = {}, {}, {}
   for _, t in ipairs(p.group or { p.target }) do
@@ -49,14 +61,12 @@ function group.totals(p, player_index)
       plans = request.plans(t, priming.new(t, player_index, p), { top_up = false })
       by_quality[t.quality] = plans
     end
-    for _, plan in ipairs(plans) do
-      local name = plan.id.name
-      if not sums[name] then sums[name], order[#order + 1] = 0, name end
-      for _, position in ipairs(plan.items.in_inventory) do sums[name] = sums[name] + (position.count or 1) end
-    end
+    for _, plan in ipairs(plans) do sum_plan(plan, sums, order) end
   end
   local parts = {}
-  for _, name in ipairs(order) do parts[#parts + 1] = "[item=" .. name .. "]" .. sums[name] end
+  for _, entry in ipairs(order) do
+    parts[#parts + 1] = blueprint.item_tag(entry.name, entry.quality) .. sums[entry.key]
+  end
   return table.concat(parts, "  ")
 end
 
@@ -78,17 +88,25 @@ local function prime_entity(entity, t, p, player_index)
 end
 
 -- The whole dragged area as vanilla would copy it, with every member
--- primed; everything else in it is left as vanilla wrote it. Split from the
--- cursor handling so headless tests, which have no player, can check it.
+-- primed. create_blueprint raises no on_player_setup_blueprint, so every
+-- other built entity with a pending primed request (vanilla drops a built
+-- proxy's ingredient positions, and all of a chest's) is carried as a copy
+-- would carry it (ADR-0008); everything else stays as vanilla wrote it.
+-- Split from the cursor handling so headless tests, which have no player,
+-- can check it.
 function group.write_area(stack, p, force, player_index)
   if not (p.area and stack.set_stack({ name = "blueprint" })) then return false end
   local mapping = stack.create_blueprint({ surface = p.target.surface, force = force, area = p.area })
   local entities = stack.get_blueprint_entities()
   if not entities or #entities == 0 then return false end
-  local members = by_unit(live_members(p))
+  local members, lined_up = by_unit(live_members(p)), table_size(mapping) == #entities
   for index, source in pairs(mapping) do
-    local t = source.valid and members[source.unit_number]
-    if t and entities[index] then prime_entity(entities[index], t, p, player_index) end
+    local t, entity = source.valid and members[source.unit_number], entities[index]
+    if t and entity then
+      prime_entity(entity, t, p, player_index)
+    elseif entity and lined_up then
+      copy.carry_one(entity, source, force, player_index)
+    end
   end
   stack.set_blueprint_entities(entities)
   stack.preview_icons = stack.default_icons

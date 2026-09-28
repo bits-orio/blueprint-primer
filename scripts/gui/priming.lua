@@ -1,45 +1,32 @@
--- The Priming record's rules: its defaults, the slot cap, and every change
--- the window can make to it. Pure state over the CORE modules with no GUI
--- access, so the view can recompute everything from the record alone.
+-- The Priming record's rules: its defaults and every change the window can
+-- make to it. Pure state over the CORE modules with no GUI access, so the
+-- view can recompute everything from the record alone. The caps and
+-- settling live in caps.lua, a chest's rows in items.lua.
 
 local const = require("scripts.const")
 local craft = require("scripts.craft")
 local fuel = require("scripts.fuel")
 local target = require("scripts.target")
+local placement = require("scripts.placement")
+local caps = require("scripts.gui.caps")
+local items = require("scripts.gui.items")
 local reopen = require("scripts.gui.reopen")
 
 local priming = {}
 
 local REASON = const.REASON
+local clamp, share, settle = caps.clamp, caps.share, caps.settle
 
-local function clamp(n, low, high)
-  return math.max(low, math.min(high, n))
-end
+priming.cap = caps.crafts
+priming.fuel_cap = caps.fuel
+priming.estimate = caps.estimate
 
 local function is_fuel_only(p)
   return p.target.kind == const.KIND_FUEL_ONLY
 end
 
--- Half stands in for vanilla's "half stack": half the cap, whole units.
-local function share(cap, full)
-  if full then return cap end
-  return math.max(1, math.floor(cap / 2))
-end
-
--- The largest craft count the slider may reach: the slot cap and, for
--- burners, an estimate that still fits the fuel inventory.
-function priming.cap(p)
-  if not p.recipe then return 0 end
-  local cap = craft.slot_cap(p.recipe)
-  if p.target.burner and p.fuel then
-    cap = math.min(cap, fuel.max_crafts(p.target, p.recipe, p.fuel))
-  end
-  return cap
-end
-
-function priming.fuel_cap(p)
-  if not p.fuel then return 0 end
-  return fuel.capacity(p.target, p.fuel)
+local function is_chest(p)
+  return p.target.kind == const.KIND_CHEST
 end
 
 -- Output units per craft; 1 when the product is not deterministic and the
@@ -53,38 +40,6 @@ function priming.outputs(p)
   return p.crafts * priming.per_craft(p)
 end
 
-function priming.estimate(p)
-  if is_fuel_only(p) or not (p.recipe and p.fuel) or p.crafts < 1 then return nil end
-  return fuel.estimate(p.target, p.recipe, p.crafts, p.fuel)
-end
-
--- A typed fuel amount survives until the craft count changes; otherwise
--- the fuel follows the crafts.
-local function refuel(p)
-  if not p.fuel then
-    p.fuel_count = 0
-  elseif is_fuel_only(p) or p.fuel_edited then
-    p.fuel_count = clamp(p.fuel_count, 1, math.max(1, priming.fuel_cap(p)))
-  else
-    p.fuel_count = priming.estimate(p) or 0
-  end
-end
-
--- Re-fit every derived number after the recipe or the fuel changed.
-local function settle(p)
-  if not is_fuel_only(p) then
-    local cap = priming.cap(p)
-    if cap < 1 then
-      p.crafts = 0
-    elseif p.crafts < 1 then
-      p.crafts = share(cap, false)
-    else
-      p.crafts = clamp(p.crafts, 1, cap)
-    end
-  end
-  refuel(p)
-end
-
 -- The target's own recipe, or nil when the window could not prime it.
 local function live_recipe(t)
   local recipe, quality = target.current_recipe(t)
@@ -93,7 +48,8 @@ local function live_recipe(t)
 end
 
 -- `carried`: another machine's Priming to start from instead of this
--- target's own pending request (a settings paste, paste.lua).
+-- target's own pending request (a settings paste, paste.lua). A chest also
+-- gets a mode and its rows (items.lua); reopen picks the mode.
 function priming.new(t, player_index, carried)
   local recipe, quality = live_recipe(t)
   local p = {
@@ -106,6 +62,7 @@ function priming.new(t, player_index, carried)
     fuel_count = 0,
     fuel_edited = false,
   }
+  if t.kind == const.KIND_CHEST then p.mode, p.items, p.next_row_id = const.MODE_ITEMS, {}, 1 end
   if t.burner then p.fuel, p.fuel_quality = fuel.default(t, player_index) end
   if is_fuel_only(p) and p.fuel then p.fuel_count = share(priming.fuel_cap(p), false) end
   if carried then reopen.carry(p, carried) else reopen.preset(p) end
@@ -122,7 +79,7 @@ function priming.set_crafts(p, crafts)
   if wanted == p.crafts then return end
   p.crafts = wanted
   p.fuel_edited = false
-  refuel(p)
+  caps.refuel(p)
 end
 
 -- Typed output counts round up: asking for 5 cables at 2 per craft makes 6.
@@ -169,6 +126,37 @@ function priming.set_fuel(p, item, player_index)
   return true
 end
 
+-- A chest's switch (ADR-0013). Both modes keep their own state and only the
+-- active one is requested. Into Items, empty rows start from the recipe's
+-- want list; into Recipe, a record with no recipe takes the fed recipe.
+function priming.set_mode(p, mode)
+  if not is_chest(p) or p.mode == mode then return end
+  if mode ~= const.MODE_ITEMS and mode ~= const.MODE_RECIPE then return end
+  if mode == const.MODE_ITEMS and #p.items == 0 then items.fill(p, placement.wants(p)) end
+  if mode == const.MODE_RECIPE and not p.recipe then
+    local recipe, quality = target.fed_recipe(p.target)
+    if recipe then p.recipe, p.quality, p.crafts = recipe, quality, 0 end
+  end
+  p.mode = mode
+  settle(p)
+end
+
+-- "Uses N of M slots": the whole stacks the active mode fills in a fresh
+-- chest, and the chest's slots.
+function priming.slots(p)
+  return placement.slots_needed(placement.wants(p)), placement.slots(p.target)
+end
+
+-- Request's pre-check on a built chest: its top-up would not fit beside
+-- what it holds (CHEST_FULL). A blueprint is for a fresh chest, so this
+-- never blocks Blueprint.
+function priming.chest_full(p)
+  local t = p.target
+  if not is_chest(p) or t.is_ghost or not (t.entity and t.entity.valid) then return false end
+  local _, short = placement.place(t, placement.wants(p), true)
+  return short > 0
+end
+
 -- The same rule request.apply enforces (target.recipe_locked, ADR-0007).
 function priming.recipe_locked(p)
   return target.recipe_locked(p.target)
@@ -192,10 +180,11 @@ function priming.blocker(p)
   if is_fuel_only(p) then
     return not p.fuel and REASON.NO_FUEL or nil
   end
+  if p.mode == const.MODE_ITEMS then return items.blocker(p) end
   if not p.recipe then
     return priming.recipe_locked(p) and REASON.RECIPE_NOT_PRIMABLE or REASON.PICK_RECIPE
   end
-  if priming.cap(p) < 1 then return REASON.CAP_ZERO end
+  if priming.cap(p) < 1 then return is_chest(p) and REASON.CHEST_CAP_ZERO or REASON.CAP_ZERO end
   return nil
 end
 

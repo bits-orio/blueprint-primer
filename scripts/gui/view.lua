@@ -1,6 +1,7 @@
 -- Fill the priming window from the player's Priming record. Recomputes
 -- every number on each call and never rebuilds the frame; only the
--- ingredient icons are replaced, when the recipe or its quality changes.
+-- ingredient icons are replaced, when the recipe or its quality changes,
+-- and a chest's items lines, when a row is added, removed or changes item.
 
 local const = require("scripts.const")
 local state = require("scripts.state")
@@ -9,6 +10,8 @@ local target = require("scripts.target")
 local group = require("scripts.group")
 local names = require("scripts.gui.names")
 local priming = require("scripts.gui.priming")
+local widgets = require("scripts.gui.widgets")
+local item_table = require("scripts.gui.item_table")
 
 local view = {}
 
@@ -20,23 +23,7 @@ local function index(element, found)
   return found
 end
 
--- The engine refuses a slider whose minimum equals its maximum, so a
--- range of one value (or none) shows as a disabled 0..1 slider.
-local function set_slider(slider, value, max)
-  if max >= 2 then
-    slider.set_slider_minimum_maximum(1, max)
-  else
-    slider.set_slider_minimum_maximum(0, 1)
-  end
-  slider.enabled = max >= 2
-  slider.slider_value = value
-end
-
--- The field being typed into is left alone, or every keystroke would be
--- rewritten mid-number.
-local function set_text(field, value, skip)
-  if field.name ~= skip then field.text = tostring(value) end
-end
+local set_slider, set_text = widgets.set_slider, widgets.set_text
 
 local function shown_quality(quality)
   if quality == const.NORMAL_QUALITY then return nil end
@@ -141,23 +128,33 @@ end
 -- A blocker explains a disabled Request; otherwise a built target gets a
 -- reminder that requests top up rather than add.
 -- An unresearched recipe is a note, not a blocker: Blueprint still works,
--- and so does Request everywhere but a built furnace (ADR-0009).
+-- and so does Request everywhere but a built furnace (ADR-0009). A chest
+-- in items mode requests no recipe.
 local function footer_note(p)
-  if unresearched(p) then
+  if p.mode ~= const.MODE_ITEMS and unresearched(p) then
     if not target.recipe_deliverable(p.target, p.recipe) then return const.REASON.FURNACE_NOT_RESEARCHED end
     if p.target.kind == const.KIND_FURNACE then return const.NOTICE.FURNACE_NOT_RESEARCHED_YET end
+    if p.target.kind == const.KIND_CHEST then return const.NOTICE.CHEST_NOT_RESEARCHED end
     return const.NOTICE.NOT_RESEARCHED
   end
   return not p.target.is_ghost and "bp-primer.top-up-note" or nil
 end
 
+-- A built chest whose top-up would not fit beside what it holds cannot
+-- take the Request, but a blueprint is for a fresh chest (CHEST_FULL). For a
+-- group this only ever looks at the primary, so it blocks Request outright
+-- only for a single chest; a group instead gets a note, and group.request
+-- counts the primary's refusal itself, as machines do with FUEL_SLOT_TAKEN.
 local function refresh_footer(found, p)
   local blocker = priming.blocker(p)
+  local full = not blocker and priming.chest_full(p)
+  local single = group.size(p) == 1
   local deliverable = not p.recipe or target.recipe_deliverable(p.target, p.recipe)
-  found[names.request].enabled = blocker == nil and deliverable
+  found[names.request].enabled = blocker == nil and deliverable and not (full and single)
   found[names.blueprint].enabled = blocker == nil
   local status = found[names.status]
-  local message = blocker or footer_note(p)
+  local full_message = full and (single and const.REASON.CHEST_FULL or const.NOTICE.CHEST_FULL_GROUP)
+  local message = blocker or full_message or footer_note(p)
   status.visible = message ~= nil
   status.caption = message and { message } or ""
 end
@@ -177,14 +174,29 @@ local function refresh_totals(label, p, player_index)
   label.caption = { "bp-primer.totals", group.totals(p, player_index), count }
 end
 
+-- A chest window shows the active mode's controls, and how many slots of
+-- a fresh chest it fills.
+local function refresh_mode(found, p)
+  local switch = found[names.mode]
+  if not switch then return end
+  local items_mode = p.mode == const.MODE_ITEMS
+  switch.switch_state = items_mode and "right" or "left"
+  found[names.rows].visible = not items_mode
+  found[names.items].visible = items_mode
+  local used, total = priming.slots(p)
+  found[names.slots].caption = { "bp-primer.slots-used", used, total }
+end
+
 -- skip: the name of a text field the player is typing into, if any.
 function view.refresh(player, skip)
   local frame = player.gui.screen[names.window]
   local p = state.player(player.index).priming
   if not (frame and frame.valid and p) then return end
   local found = index(frame, {})
+  refresh_mode(found, p)
   refresh_crafts(found, p, skip)
   refresh_fuel(found, p, skip)
+  item_table.refresh(found, p, skip)
   refresh_totals(found[names.totals], p, player.index)
   refresh_footer(found, p)
 end

@@ -23,7 +23,9 @@ local function tool_filters()
   end
   check.truthy("group tool filters light up furnaces, assemblers and boilers",
     filters["stone-furnace"] and filters["assembling-machine-2"] and filters["boiler"])
-  check.eq("group tool filters leave chests out", filters["wooden-chest"], nil)
+  check.truthy("group tool filters light up plain chests", filters["wooden-chest"] and filters["steel-chest"])
+  check.same("group tool filters leave logistic chests out",
+    { filters["requester-chest"], filters["passive-provider-chest"] }, {})
 end
 
 -- A row: two stone furnace ghosts, a built stone furnace holding 4 ore, a

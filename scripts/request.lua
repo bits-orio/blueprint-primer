@@ -1,11 +1,13 @@
 -- Build the primed request as insert plans, and write it onto a target:
 -- the ghost's own insert_plan, or an item-request-proxy for a built machine
--- (ADR-0002). Only the ingredient and fuel inventories are ours; every other
--- pending request (modules above all) is carried over untouched.
+-- (ADR-0002). Only the ingredient and fuel inventories are ours (a chest's
+-- whole inventory); every other pending request (modules above all) is
+-- carried over untouched.
 
 local const = require("scripts.const")
 local craft = require("scripts.craft")
 local target = require("scripts.target")
+local placement = require("scripts.placement")
 
 local request = {}
 
@@ -36,7 +38,7 @@ local function add_position(collector, name, quality, position)
 end
 
 local function add_ingredients(collector, t, priming, top_up)
-  local input, quality = defines.inventory.crafter_input, priming.quality or NORMAL
+  local input, quality = target.input_inventory(t), priming.quality or NORMAL
   for _, ingredient in ipairs(craft.ingredients(priming.recipe)) do
     if ingredient.type == "item" then
       local count = math.min(math.ceil(ingredient.amount * priming.crafts), craft.slot_limit(ingredient))
@@ -80,10 +82,20 @@ local function add_fuel(collector, t, priming, top_up)
   return math.max(0, left)
 end
 
--- Returns the plans and the fuel count that did not fit.
+-- A chest's want list through placement.lua; returns the items that found
+-- no room beside what a built chest holds.
+local function add_chest(collector, t, priming, top_up)
+  local entries, shortfall = placement.place(t, placement.wants(priming), top_up)
+  for _, entry in ipairs(entries) do add_position(collector, entry.name, entry.quality, entry.position) end
+  return shortfall
+end
+
+-- Returns the plans and what did not fit: fuel for a machine, items for a
+-- chest.
 function request.plans(t, priming, opts)
   local top_up = opts and opts.top_up and not t.is_ghost
   local collector, shortfall = new_collector(), 0
+  if t.kind == const.KIND_CHEST then return collector.list, add_chest(collector, t, priming, top_up) end
   if t.kind ~= const.KIND_FUEL_ONLY and priming.recipe and (priming.crafts or 0) > 0 then
     add_ingredients(collector, t, priming, top_up)
   end
@@ -93,11 +105,13 @@ function request.plans(t, priming, opts)
   return collector.list, shortfall
 end
 
--- Inventory ids are per entity type (1 is a car's fuel but also other
--- things), so what we own depends on the kind of target.
+-- Inventory ids are per entity type (1 is a car's fuel but also a chest's
+-- own inventory: defines.inventory.chest == defines.inventory.fuel), so what
+-- we own depends on the kind of target.
 function request.owned(t)
+  if t.kind == const.KIND_CHEST then return { [target.input_inventory(t)] = true } end
   local owned = { [defines.inventory.fuel] = true }
-  if t.kind ~= const.KIND_FUEL_ONLY then owned[defines.inventory.crafter_input] = true end
+  if t.kind ~= const.KIND_FUEL_ONLY then owned[target.input_inventory(t)] = true end
   return owned
 end
 local owned_inventories = request.owned
@@ -131,6 +145,8 @@ end
 local function prepare_recipe(t, priming)
   local recipe, quality = priming.recipe, priming.quality or NORMAL
   if t.kind == const.KIND_FUEL_ONLY or not recipe then return true end
+  -- A chest has no recipe to set; items mode asks for no recipe at all.
+  if t.kind == const.KIND_CHEST and priming.mode ~= const.MODE_RECIPE then return true end
   if not target.allows_recipe(t, recipe) then return false, REASON.RECIPE_NOT_ALLOWED end
   if not target.recipe_deliverable(t, recipe) then return false, REASON.FURNACE_NOT_RESEARCHED end
   local current, current_quality = target.current_recipe(t)
@@ -160,11 +176,14 @@ end
 -- `true, notice` on success, where the notice says whether anything is on
 -- its way (a built machine may already hold everything); `false, reason`
 -- otherwise. Fuel that cannot fit beside another fuel refuses the whole
--- request, so a machine is never primed to run dry part-way through.
+-- request, so a machine is never primed to run dry part-way through; so do
+-- a chest's items that cannot fit beside what it holds.
 function request.apply(t, priming)
   if not target.revalidate(t) then return false, REASON.TARGET_GONE end
   local ours, shortfall = request.plans(t, priming, { top_up = true })
-  if shortfall > 0 then return false, REASON.FUEL_SLOT_TAKEN end
+  if shortfall > 0 then
+    return false, t.kind == const.KIND_CHEST and REASON.CHEST_FULL or REASON.FUEL_SLOT_TAKEN
+  end
   local ok, reason = prepare_recipe(t, priming)
   if not ok then return false, reason end
   if t.is_ghost then

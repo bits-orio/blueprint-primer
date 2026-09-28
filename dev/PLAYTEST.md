@@ -9,10 +9,10 @@ Each line is an action, then the expected result.
 - [ ] Shortcut bar: the primer button shows its icon, and its tooltip names ALT + P.
 - [ ] Click the button: the primer tool is in the cursor. Click again: it is gone.
 - [ ] Click the recipe slot: the picker opens with vanilla-style group tabs; unresearched recipes (steel plate early on) sit on red slots. Pick one: the slot turns red with the "not unlocked" sign, and the note explains. On a built furnace Request is disabled; on a ghost it stays enabled; Blueprint always works.
-- [ ] Drag the tool: only machines light up while dragging. Over a row of one kind: all are outlined (copy colour), the title reads "Prime N × <machine>", a totals line appears once a recipe is set, Request primes every one (built ones topped up), Blueprint takes the whole dragged area with them primed. Over mixed kinds: the kind nearest the middle wins, the others are outlined in red, and flying text above the drag says one kind at a time. A drag over one machine shows no hint.
+- [ ] Drag the tool: only machines and plain chests light up while dragging. Over a row of one kind: all are outlined (copy colour), the title reads "Prime N × <machine>", a totals line appears once a recipe is set, Request primes every one (built ones topped up), Blueprint takes the whole dragged area with them primed. Over mixed kinds: the kind nearest the middle wins, the others are outlined in red, and flying text above the drag says one kind at a time. A drag over one machine shows no hint.
 - [ ] With the tool, click a furnace: the window opens and the tool has left the cursor. Click bare ground: the tool stays in hand.
 - [ ] Hover a furnace and press ALT + P: its priming window opens. Hover bare ground and press ALT + P: the tool is in the cursor.
-- [ ] Hover a rocket silo and press ALT + P: flying text says this kind of crafting machine cannot be primed, and the cursor is unchanged. Hover a chest or a tree: the tool is toggled, with no message.
+- [ ] Hover a rocket silo and press ALT + P: flying text says this kind of crafting machine cannot be primed, and the cursor is unchanged. Hover a tree: the tool is toggled, with no message.
 - [ ] Hold an item that cannot be put away (full inventory) and press the shortcut: "Empty your cursor first."
 - [ ] Rebind the input under Settings > Controls: the shortcut tooltip shows the new key.
 
@@ -20,7 +20,7 @@ Each line is an action, then the expected result.
 
 - [ ] Click a stone furnace ghost, then a built furnace: each opens its window. This is the check that ghosts are selectable (`entity-ghost` flag).
 - [ ] Drag across three furnaces: the one nearest the centre of the drag opens. Shift-drag does the same.
-- [ ] Click a belt: flying text says it cannot be primed. Drag over empty ground: "No machine here to prime."
+- [ ] Click a belt: flying text says it cannot be primed. Drag over empty ground: "No machine or chest here to prime."
 - [ ] Base + Quality without Space Age: click a recycler: "This kind of crafting machine cannot be primed." With Space Age it opens as a furnace offering scrap recycling.
 - [ ] Multiplayer, second force: the other force's machines are not selected.
 
@@ -66,9 +66,27 @@ Each line is an action, then the expected result.
 - [ ] Blueprint: the cursor holds a one-machine blueprint labelled with the output and count. Stamp it three times: each copy carries the same request.
 - [ ] Prime a locomotive standing on an east-west rail and press Blueprint: the stamped locomotive lines up with the rail, not north.
 
+## Chests
+
+- [ ] Hover a wooden chest that feeds nothing and press ALT + P: the window opens in Items mode with no rows, and `NO_ITEMS` shows with both buttons disabled.
+- [ ] Build an inserter feeding ore from a chest into a furnace set to a recipe, then ALT + P the chest: it opens in Recipe mode already on that recipe, at half the chest cap. Feed two furnaces on different recipes from one chest: it opens in Items mode instead.
+- [ ] Drag the tool over a row of chests: all light up, are outlined, and the title reads "Prime N × <chest>". Drag a row that clips both chests and furnaces, centred on the chests: the furnaces are not skipped or outlined at all; centred on the furnaces, the chests are not either.
+- [ ] Click a storage or requester chest, or hover one with ALT + P: "Only plain chests can be primed" (`LOGISTIC_CHEST`), not "nothing to prime".
+- [ ] Recipe mode: pick a recipe with 2+ ingredients; the slider's cap matches a hand-count of what a fresh chest of that size can hold in whole stacks. Half and Max set half and all of it.
+- [ ] Switch a chest with a recipe chosen from Recipe to Items: rows appear, one per ingredient, at the recipe's amounts. Switch back to Recipe: the recipe and craft count are unchanged.
+- [ ] Items mode: pick an item in the trailing chooser: a new row appears at Half. Pick the same item and quality again in another row: `ITEM_LISTED`, no second row. Fill the chest, then pick one more item: `CHEST_NO_ROOM`, no row added.
+- [ ] On a row: Half, Max, drag the slots slider, and type an exact count into the items field; each updates the other two, and none can push the row past what the other rows leave.
+- [ ] Built chest already holding 20 stacks of stone: prime 16 slots of plate. `CHEST_FULL` shows, Request is disabled, Blueprint stays enabled. Lower it to 12 slots: the full note is replaced by the top-up reminder and Request re-enables; pressing it tops up exactly the empty slots.
+- [ ] Prime a ghost chest in Items mode with three rows, Request, then reopen it: the same three rows and counts come back. Do the same in Recipe mode on a chest that feeds a machine on that recipe: the same recipe and craft count come back, and Request again rewrites the same plan ("Requested"; compare the item-request markers before and after). An unfed chest reopens in Items mode with the recipe's amounts as rows.
+- [ ] Pick an unresearched recipe on a chest: the note reads the chest wording (`CHEST_NOT_RESEARCHED`), Request still works (robots wait for the research; a chest is never a "built furnace" refusal).
+- [ ] Copy-paste a built, primed chest: the copy carries the same rows or recipe. Shift+click paste chest settings onto another chest of the same kind: it takes the source's mode and rows, fitted to its own size.
+- [ ] Drag-prime three chests, set items-mode rows, Request: the group window shows a totals line with quality tags where relevant, and all three chests get the same plan. Blueprint the dragged area: any other already-primed machine or chest caught in it keeps its own request too.
+- [ ] Blueprint a chest with a bar set partway: the stamped copy keeps the bar.
+- [ ] Put foreign items in the middle chest of a row, then drag-prime the row with a row of plates too big for that chest: the status line says the middle chest will be skipped, Request stays enabled, and pressing it reports how many chests took it, naming the full chest. The same drag over a row of chests of mixed quality outlines the other-quality chests in red and says one kind and quality at a time.
+
 ## Robustness
 
-- [ ] Mine the machine with its window open (a second player or `/c` may be needed), then press Max or Request: the window closes with "The machine is gone."
+- [ ] Mine the machine with its window open (a second player or `/c` may be needed), then press Max or Request: the window closes with "That machine or chest is gone."
 - [ ] With the window open, die (`/c game.player.character.die()`), or change force (`/c game.player.force = game.create_force("x")`): the window is gone afterwards, not stranded on screen.
 - [ ] With the window open, become a spectator without changing force (`/c game.player.set_controller{type = defines.controllers.spectator}`): the window is gone. As a spectator, ALT + P over a furnace does nothing. Open Space Age remote view with the window open: if the window stays on screen, E and Escape still close it.
 - [ ] Let robots build the ghost while its window is open, then press Request: it tops up the built machine.

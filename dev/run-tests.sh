@@ -11,7 +11,13 @@
 #
 #   BP_MOD_SRC=<dir>   test another copy of the mod instead of the repo root
 #   BP_TEST_TICKS=<n>  benchmark length (must pass bp-test's CHECK_TICK)
-#   FACTORIO=<path>    the Factorio binary
+#   FACTORIO=<path>    the Factorio binary: 2.0.77 by default,
+#                      /home/shobhitg/factorio-2.1/bin/x64/factorio for 2.1.17
+#
+# Factorio refuses a mod whose info.json names another major.minor than its
+# own. When the binary's differs from info.json's factorio_version, the run
+# dir gets COPIES of the mod and bp-test with factorio_version patched to the
+# binary's, instead of symlinks; the repo's info.json is never touched.
 #
 # Exit status is non-zero on any BP_TEST FAIL, any Lua/engine error in the
 # logs, a failed Factorio run, or a missing BP_TEST DONE marker.
@@ -27,6 +33,25 @@ TICKS="${BP_TEST_TICKS:-15100}"
 
 SETS=("$@")
 if [ ${#SETS[@]} -eq 0 ]; then SETS=(base space-age); fi
+
+# "2.0" from "Version: 2.0.77 (build ...)".
+ENGINE_VERSION="$("$FACTORIO" --version 2>/dev/null | sed -nE 's/^Version: ([0-9]+\.[0-9]+)\..*/\1/p' | head -n 1)"
+
+mod_version() { # <mod dir>
+  sed -nE 's/.*"factorio_version": *"([^"]+)".*/\1/p' "$1/info.json"
+}
+
+# A symlink when the mod already targets this engine, else a patched copy
+# (without the repo's run dir, git data and never-shipped folders).
+stage_mod() { # <source dir> <destination>
+  if [ -z "$ENGINE_VERSION" ] || [ "$(mod_version "$1")" = "$ENGINE_VERSION" ]; then
+    ln -s "$1" "$2"
+    return
+  fi
+  mkdir -p "$2"
+  rsync -a --exclude .git --exclude .run --exclude dev --exclude docs --exclude tools "$1/" "$2/"
+  sed -i -E "s/(\"factorio_version\": *\")[^\"]+\"/\1$ENGINE_VERSION\"/" "$2/info.json"
+}
 
 write_mod_list() { # <mods dir> <dlc enabled: true|false>
   cat > "$1/mod-list.json" <<EOF
@@ -59,8 +84,8 @@ prepare_set() { # <set name> <set dir>
   [ "$1" = "space-age" ] && dlc=true
   rm -rf "$2/mods"
   mkdir -p "$2/mods"
-  ln -s "$MOD_SRC" "$2/mods/BlueprintPrimer"
-  ln -s "$TEST_MOD" "$2/mods/bp-test"
+  stage_mod "$MOD_SRC" "$2/mods/BlueprintPrimer"
+  stage_mod "$TEST_MOD" "$2/mods/bp-test"
   write_mod_list "$2/mods" "$dlc"
   write_config "$2"
 }
@@ -107,6 +132,7 @@ run_set() { # <set name>
 }
 
 overall=0
+echo "Factorio $ENGINE_VERSION: $FACTORIO"
 for set in "${SETS[@]}"; do
   case "$set" in
     base|space-age) run_set "$set" || overall=1 ;;

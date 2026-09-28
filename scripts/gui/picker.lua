@@ -16,7 +16,7 @@ local SLOT = 40
 -- Candidates split by item group, groups in inventory order.
 local function by_group(t)
   local groups, order = {}, {}
-  for _, name in ipairs(target.recipe_candidates(t.prototype)) do
+  for _, name in ipairs(target.recipe_candidates(t)) do
     local group = prototypes.recipe[name].group.name
     if not groups[group] then
       groups[group] = {}

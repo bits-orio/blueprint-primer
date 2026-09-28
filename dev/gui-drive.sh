@@ -22,7 +22,10 @@ cmd="$1"; shift
 case "$cmd" in
   shot)  focus; import -window "$W" "$1" ;;
   move)  focus; xdotool mousemove --window "$W" "$1" "$2" ;;
-  click) focus; xdotool mousemove --window "$W" "$1" "$2"; sleep 0.2; xdotool click "${3:-1}" ;;
+  # Held briefly, like a real click: 2.1 ignores an instant press and release
+  # on slot-style buttons (the recipe slot, choose-elem buttons).
+  click) focus; xdotool mousemove --window "$W" "$1" "$2"; sleep 0.2
+         xdotool mousedown "${3:-1}"; sleep 0.15; xdotool mouseup "${3:-1}" ;;
   drag)  focus; xdotool mousemove --window "$W" "$1" "$2" mousedown 1; sleep 0.2
          xdotool mousemove --window "$W" "$3" "$4"; sleep 0.2; xdotool mouseup 1 ;;
   key)   focus; for k in "$@"; do xdotool key --window "$W" "$k"; sleep 0.2; done ;;

@@ -1,17 +1,20 @@
 -- The test world: a flat lab floor near the origin with a powered roboport
--- network (the spike's rig), and a second floor far outside its range where
--- the synchronous contract cases place entities robots must never touch.
+-- network (the spike's rig), and two more floors far outside its range where
+-- the synchronous contract cases place entities robots must never touch:
+-- one for machines, one for chests.
 
 local rig = {}
 
 rig.FORCE = "player"
 rig.UNIT_ORIGIN = { x = 400, y = 0 }
+rig.CHEST_ORIGIN = { x = 400, y = 120 }
 local HALF = 48
 
 local STOCK = {
   { "coal", 200 }, { "iron-ore", 300 }, { "stone", 100 }, { "stone-furnace", 20 },
   { "steel-furnace", 10 }, { "assembling-machine-2", 5 }, { "speed-module", 5 },
-  { "iron-plate", 100 }, { "copper-cable", 200 }, { "bp-test-fuel", 10 }, { "bp-test-brick", 50 },
+  { "iron-plate", 100 }, { "copper-cable", 200 }, { "bp-test-fuel", 10 }, { "bp-test-brick", 70 },
+  { "wooden-chest", 5 }, { "iron-chest", 5 },
 }
 
 local function flatten(surface, centre)
@@ -34,6 +37,7 @@ function rig.prepare()
   local surface = game.surfaces.nauvis
   flatten(surface, { x = 0, y = 0 })
   flatten(surface, rig.UNIT_ORIGIN)
+  flatten(surface, rig.CHEST_ORIGIN)
   game.forces.enemy.kill_all_units()
   game.map_settings.enemy_expansion.enabled = false
   game.forces.player.enable_all_recipes()
@@ -56,11 +60,16 @@ function rig.at(dx, dy)
   return { x = rig.UNIT_ORIGIN.x + dx, y = rig.UNIT_ORIGIN.y + dy }
 end
 
+-- Chest-area position: offsets from CHEST_ORIGIN, far from any robot.
+function rig.chest_at(dx, dy)
+  return { x = rig.CHEST_ORIGIN.x + dx, y = rig.CHEST_ORIGIN.y + dy }
+end
+
 function rig.ghost(surface, name, position, opts)
   opts = opts or {}
   local ghost = surface.create_entity {
     name = "entity-ghost", inner_name = name, position = position,
-    force = opts.force or rig.FORCE, quality = opts.quality,
+    force = opts.force or rig.FORCE, quality = opts.quality, direction = opts.direction,
   }
   if opts.recipe then ghost.set_recipe(opts.recipe) end
   return ghost
@@ -70,7 +79,7 @@ function rig.built(surface, name, position, opts)
   opts = opts or {}
   return surface.create_entity {
     name = name, position = position, force = opts.force or rig.FORCE,
-    quality = opts.quality, recipe = opts.recipe,
+    quality = opts.quality, recipe = opts.recipe, direction = opts.direction,
   }
 end
 
@@ -84,8 +93,23 @@ end
 -- A Priming (DESIGN.md) with the defaults the window would start from.
 function rig.priming(t, fields)
   local p = { target = t, recipe = nil, quality = "normal", crafts = 0, fuel = nil, fuel_count = 0, fuel_edited = false }
+  if t.kind == "chest" then p.mode, p.items, p.next_row_id = "recipe", {}, 1 end
   for k, v in pairs(fields or {}) do p[k] = v end
   return p
+end
+
+-- Items-mode rows from `{ name, count[, quality] }` pairs, ids 1..n.
+function rig.rows(...)
+  local rows = {}
+  for i, entry in ipairs({ ... }) do
+    rows[i] = { id = i, name = entry[1], count = entry[2], quality = entry[3] or "normal" }
+  end
+  return rows
+end
+
+-- A chest Priming in items mode with these rows.
+function rig.items_priming(t, rows)
+  return rig.priming(t, { mode = "items", items = rows, next_row_id = #rows + 1 })
 end
 
 return rig

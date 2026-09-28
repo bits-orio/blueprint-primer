@@ -15,7 +15,8 @@ local paste = {}
 -- kind of machine, one whose burner cannot take the source's fuel, or one
 -- that cannot take its recipe (request.apply refuses that, as the window
 -- would), is left to vanilla. An electric machine needs no fuel, so it
--- takes the ingredients alone.
+-- takes the ingredients alone; a chest pastes onto a chest (the engine
+-- raises the event between containers), its rows fitted to the new one.
 function paste.apply(source, destination, force, player_index)
   local from = carried.priming(source, force, player_index)
   local to = from and target.from_entity(destination, force)

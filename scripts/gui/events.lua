@@ -6,12 +6,11 @@
 local const = require("scripts.const")
 local state = require("scripts.state")
 local target = require("scripts.target")
-local request = require("scripts.request")
-local blueprint = require("scripts.blueprint")
-local group = require("scripts.group")
 local names = require("scripts.gui.names")
 local picker = require("scripts.gui.picker")
 local priming = require("scripts.gui.priming")
+local actions = require("scripts.gui.actions")
+local chest_events = require("scripts.gui.chest_events")
 local window = require("scripts.gui.window")
 local view = require("scripts.gui.view")
 
@@ -63,39 +62,6 @@ local function dispatch(handlers, event, keep_text)
   view.refresh(player, keep_text and element.valid and element.name or nil)
 end
 
--- Run Request or Blueprint; the window closes only on success, so a
--- refusal leaves every number in place for another try. A success may
--- carry a notice to show once the window is gone.
-local function submit(player, p, act, fallback)
-  if priming.blocker(p) then return end
-  local ok, message = act()
-  if not ok then return window.notify(player, message or fallback) end
-  window.close(player)
-  if message then window.notify(player, message) end
-end
-
--- A group reports how many of its machines took the request; any that did
--- not are counted, with the first reason given.
-local function request_group(player, p)
-  local done, total, reason = group.request(p, player.index)
-  if done == 0 then return false, reason end
-  if done == total then return true, { "bp-primer.requested-many", done } end
-  return true, { "bp-primer.requested-some", done, total, { reason or "bp-primer.request-failed" } }
-end
-
-local function on_request(player, p)
-  local act = function() return request.apply(p.target, p) end
-  if group.size(p) > 1 then act = function() return request_group(player, p) end end
-  submit(player, p, act, "bp-primer.request-failed")
-end
-
--- A group's blueprint is its whole dragged area (ADR-0011).
-local function on_blueprint(player, p)
-  local act = function() return blueprint.to_cursor(player, p.target, p) end
-  if group.size(p) > 1 then act = function() return group.to_cursor(player, p) end end
-  submit(player, p, act, "bp-primer.blueprint-failed")
-end
-
 local function on_recipe_slot(player, p)
   local container = view.find(player, names.picker)
   if container then picker.toggle(container, p.target, p.recipe) end
@@ -119,8 +85,8 @@ local click = {
   [names.output_max] = function(_, p) priming.preset_crafts(p, true) end,
   [names.fuel_half] = function(_, p) priming.preset_fuel(p, false) end,
   [names.fuel_max] = function(_, p) priming.preset_fuel(p, true) end,
-  [names.request] = on_request,
-  [names.blueprint] = on_blueprint,
+  [names.request] = actions.request,
+  [names.blueprint] = actions.blueprint,
 }
 
 local slider = {
@@ -155,6 +121,13 @@ local elem = {
   end,
 }
 
+local switch = {}
+
+-- A chest window's switch and items lines bring their own handlers.
+for kind, handlers in pairs({ click = click, slider = slider, text = text, elem = elem, switch = switch }) do
+  for name, handler in pairs(chest_events[kind]) do handlers[name] = handler end
+end
+
 function events.on_click(event)
   local element = event.element
   if element and element.valid and element.name == names.close then
@@ -179,6 +152,10 @@ end
 
 function events.on_elem_changed(event)
   dispatch(elem, event, false)
+end
+
+function events.on_switch_state_changed(event)
+  dispatch(switch, event, false)
 end
 
 -- E, Escape, or another GUI taking player.opened.

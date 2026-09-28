@@ -4,6 +4,8 @@
 -- delivered it keeps nothing. So a machine whose ingredients are still
 -- pending gets its whole priming written in: the full ingredient amounts
 -- and the fuel, exactly as Shift+click paste would give another machine.
+-- A built chest's proxy loses all of its positions, so a primed chest is
+-- carried the same way (ADR-0012).
 
 local const = require("scripts.const")
 local carried = require("scripts.carried")
@@ -11,19 +13,24 @@ local request = require("scripts.request")
 
 local copy = {}
 
--- What a copy owns: modules and anything else vanilla wrote are kept.
-local OWNED = { [defines.inventory.crafter_input] = true, [defines.inventory.fuel] = true }
+-- Types whose built entities can carry a primed request.
+local function carries(entity_type)
+  return const.CRAFTER_TYPES[entity_type] or entity_type == const.CHEST_TYPE
+end
 
--- A ghost's type is "entity-ghost", so it never gets here: vanilla already
--- carried its whole plan. The proxy is checked before building a Priming
--- because almost no copied machine has one, and a large copy runs this for
--- every machine on every peer. Stack indices are inventory slots, not places
--- on the map, so a mirrored or rotated source needs no transform.
-local function carry_one(entity, source, force, player_index)
-  if not (const.CRAFTER_TYPES[source.type] and source.item_request_proxy) then return false end
+-- One blueprint entity copied from `source`; true if it changed. A ghost's
+-- type is "entity-ghost", so it never gets here: vanilla already carried
+-- its whole plan. The proxy is checked before building a Priming because
+-- almost no copied entity has one, and a large copy runs this for every
+-- entity on every peer. Stack indices are inventory slots, not places on
+-- the map, so a mirrored or rotated source needs no transform. What a copy
+-- owns is request.owned: modules and anything else vanilla wrote are kept.
+function copy.carry_one(entity, source, force, player_index)
+  if not (source.valid and entity.name == source.name) then return false end
+  if not (carries(source.type) and source.item_request_proxy) then return false end
   local p = carried.priming(source, force, player_index)
   if not p then return false end
-  entity.items = request.merge(entity.items, request.plans(p.target, p), OWNED)
+  entity.items = request.merge(entity.items, request.plans(p.target, p), request.owned(p.target))
   return true
 end
 
@@ -35,10 +42,7 @@ function copy.carry(entities, mapping, force, player_index)
   local changed = false
   for index, source in pairs(mapping) do
     local entity = entities[index]
-    if entity and source.valid and entity.name == source.name
-      and carry_one(entity, source, force, player_index) then
-      changed = true
-    end
+    if entity and copy.carry_one(entity, source, force, player_index) then changed = true end
   end
   return changed
 end

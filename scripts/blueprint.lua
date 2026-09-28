@@ -1,9 +1,11 @@
--- The primed blueprint (ADR-0007): one machine carrying the window's recipe
--- and primed request, put in the cursor to be stamped as often as wanted.
+-- The primed blueprint (ADR-0007): one machine (or chest) carrying the
+-- window's recipe and primed request, put in the cursor to be stamped as
+-- often as wanted.
 
 local const = require("scripts.const")
 local craft = require("scripts.craft")
 local request = require("scripts.request")
+local placement = require("scripts.placement")
 
 local blueprint = {}
 
@@ -23,6 +25,19 @@ local function recipe_of(t, priming)
   return recipe and recipe.name, quality and quality.name or NORMAL
 end
 
+-- A built chest's bar, as a blueprint writes it (get_bar() - 1; probed on
+-- 2.0.77 and 2.1.17), or nil when it has none. Placement ignores the bar,
+-- which does not stop slot-targeted delivery; the copy just keeps it.
+local function chest_bar(t)
+  local source = t.entity
+  if t.kind ~= const.KIND_CHEST or t.is_ghost or not (source and source.valid) then return nil end
+  local inventory = source.get_inventory(defines.inventory.chest)
+  if not (inventory and inventory.supports_bar()) then return nil end
+  local bar = inventory.get_bar()
+  if bar > #inventory then return nil end
+  return bar - 1
+end
+
 -- The request is written as if onto a fresh machine: whatever the source
 -- machine holds right now does not travel with the blueprint.
 function blueprint.entity(t, priming)
@@ -40,7 +55,14 @@ function blueprint.entity(t, priming)
   if source and source.valid and source.mirroring then entity.mirror = true end
   local recipe, quality = recipe_of(t, priming)
   if recipe then entity.recipe, entity.recipe_quality = recipe, quality end
+  entity.bar = chest_bar(t)
   return entity
+end
+
+-- An item as rich text, its quality shown when it is not normal.
+function blueprint.item_tag(name, quality)
+  if not quality or quality == const.NORMAL_QUALITY then return "[item=" .. name .. "]" end
+  return "[item=" .. name .. ",quality=" .. quality .. "]"
 end
 
 local function output_signal(priming)
@@ -51,9 +73,18 @@ local function output_signal(priming)
   return nil
 end
 
+-- An items-mode chest names its first row and how many more follow.
+local function items_label(t, rows)
+  local first = rows[1]
+  if not first then return "[entity=" .. t.name .. "]" end
+  local more = #rows > 1 and (" +" .. (#rows - 1)) or ""
+  return string.format("[entity=%s] %s x%s%s", t.name, blueprint.item_tag(first.name, first.quality), first.count, more)
+end
+
 -- Labels are plain strings, but rich-text tags render in the blueprint
 -- library and tooltip, so the output shows as its icon and count.
 local function label(t, priming)
+  if priming.mode == const.MODE_ITEMS then return items_label(t, placement.wants(priming)) end
   local kind, name, count = output_signal(priming)
   if not kind then return "[entity=" .. t.name .. "]" end
   return string.format("[entity=%s] [%s=%s] x%s", t.name, kind, name, count)
@@ -64,14 +95,22 @@ local function machine_item(t)
   return items and items[1] and items[1].name or nil
 end
 
+local MAX_ROW_ICONS = 3
+
+-- The machine, then its output; an items-mode chest shows up to three rows.
 local function icons(t, priming)
   local list = {}
+  local function add(signal) list[#list + 1] = { index = #list + 1, signal = signal } end
   local item = machine_item(t)
-  if item then list[#list + 1] = { index = 1, signal = { type = "item", name = item, quality = t.quality } } end
-  local kind, name = output_signal(priming)
-  if kind == "item" or kind == "fluid" or kind == "recipe" then
-    list[#list + 1] = { index = #list + 1, signal = { type = kind, name = name } }
+  if item then add({ type = "item", name = item, quality = t.quality }) end
+  if priming.mode == const.MODE_ITEMS then
+    for i, want in ipairs(placement.wants(priming)) do
+      if i <= MAX_ROW_ICONS then add({ type = "item", name = want.name, quality = want.quality }) end
+    end
+    return list
   end
+  local kind, name = output_signal(priming)
+  if kind == "item" or kind == "fluid" or kind == "recipe" then add({ type = kind, name = name }) end
   return list
 end
 

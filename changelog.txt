@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.4
+Date: 2026-09-27
+  Features:
+    - Chests can be primed. Point the tool at a wooden, iron or steel chest, ghost or built, and its window opens with two modes: Recipe, which works exactly like a machine's, and Items, which lists individual items and counts instead. A chest feeding a machine through an inserter opens straight onto that machine's recipe.
+    - Items mode: add a row for each item you want, and set it with Half, Max, a slots slider, or an exact count, up to what the chest holds beside the other rows.
+  Changes:
+    - Dragging the primer tool now also lights up chests, and a drag over a row of chests primes them all, the same way a row of machines already worked. A drag centred on a chest skips other chests, not nearby machines, and the other way round.
+    - Clicking a logistic chest, or hovering one with ALT + P, now explains that logistic chests can't be primed, instead of doing nothing.
+  Bugfixes:
+    - A group's area Blueprint now also carries other already-primed machines and chests standing in the dragged area, not only the group itself; their requests were silently dropped before.
+    - Fixed a fixed-recipe read that returns a different type on Factorio 2.1, ahead of a future 2.1 release.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.3
 Date: 2026-09-26
   Info:

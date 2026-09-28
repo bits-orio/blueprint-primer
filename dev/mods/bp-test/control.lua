@@ -18,7 +18,15 @@ local paste_cases = require("cases.paste")
 local state_cases = require("cases.state")
 local research_cases = require("cases.research")
 local group_cases = require("cases.group")
+local chest_cases = require("cases.chest")
+local chest_families_cases = require("cases.chest_families")
+local chest_place_cases = require("cases.chest_place")
+local chest_items_cases = require("cases.chest_items")
+local chest_reopen_cases = require("cases.chest_reopen")
+local chest_carry_cases = require("cases.chest_carry")
+local compat_cases = require("cases.compat")
 local delivery = require("cases.delivery")
+local chest_delivery = require("cases.chest_delivery")
 
 -- Long enough for robots to deliver and a stone furnace to smelt 50 ore.
 local CHECK_TICK = 15000
@@ -44,11 +52,19 @@ script.on_init(function()
   group_cases.run(surface)
   paste_cases.run(surface)
   state_cases.run(surface)
+  chest_cases.run(surface)
+  chest_families_cases.run(surface)
+  chest_place_cases.run(surface)
+  chest_items_cases.run(surface)
+  chest_reopen_cases.run(surface)
+  chest_carry_cases.run(surface)
+  compat_cases.run(surface)
   if space_age() then
     quality_cases.run(surface)
     biochamber_cases.run(surface)
   end
   delivery.setup(surface)
+  chest_delivery.setup(surface)
 end)
 
 script.on_nth_tick(CHECK_TICK, function(event)
@@ -57,6 +73,7 @@ script.on_nth_tick(CHECK_TICK, function(event)
   storage.finished = true
   local surface = game.surfaces.nauvis
   delivery.verify(surface)
+  chest_delivery.verify(surface)
   check.run("priming.verify", priming_cases.verify)
   if space_age() then
     check.run("quality.verify", quality_cases.verify)

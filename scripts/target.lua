@@ -1,9 +1,10 @@
 -- Resolve a world entity (ghost or built) into the one Target being primed,
--- and answer the questions the window asks about it. The recipe questions
--- live in target_recipe.lua and are re-exported here.
+-- a machine or a chest, and answer the questions the window asks about it.
+-- The recipe questions live in target_recipe.lua and are re-exported here.
 
 local const = require("scripts.const")
 local target_recipe = require("scripts.target_recipe")
+local feed = require("scripts.feed")
 
 local target = {}
 
@@ -37,8 +38,20 @@ local function crafter_kind(prototype)
   return nil, REASON.UNSUPPORTED
 end
 
+-- A plain, visible container with room (ADR-0012); the same rule
+-- prototypes/tool_filters.lua applies at the data stage.
+local function is_chest(prototype)
+  if prototype.type ~= const.CHEST_TYPE or prototype.hidden then return false end
+  if not const.CHEST_INVENTORY_TYPES[prototype.inventory_type or "with_bar"] then return false end
+  return prototype.get_inventory_size(defines.inventory.chest, NORMAL) >= 1
+end
+
+-- Logistic chests hand their contents to the network, or trash what they
+-- were not asked for, so a primed request would not stay put.
 local function kind_of(prototype)
   if const.CRAFTING_MACHINE_TYPES[prototype.type] then return crafter_kind(prototype) end
+  if is_chest(prototype) then return const.KIND_CHEST end
+  if prototype.type == const.LOGISTIC_CHEST_TYPE then return nil, REASON.LOGISTIC_CHEST end
   if prototype.burner_prototype then return const.KIND_FUEL_ONLY end
   return nil, REASON.NOT_PRIMABLE
 end
@@ -69,10 +82,19 @@ local function settle_kind(t)
   end
 end
 
--- Whether the entity is a machine the window could open for, by prototype
--- alone: cheap enough to ask of every entity in a drag.
+-- The family of anything the window could open for, by prototype alone:
+-- cheap enough to ask of every entity in a drag (ADR-0011). nil when the
+-- entity cannot be primed at all.
+function target.family(entity)
+  if not entity.valid then return nil end
+  local kind = kind_of(describe(entity).prototype)
+  if not kind then return nil end
+  return kind == const.KIND_CHEST and const.FAMILY_CHEST or const.FAMILY_MACHINE
+end
+
+-- A machine never means a chest: callers that count machines skip chests.
 function target.is_machine(entity)
-  return entity.valid and kind_of(describe(entity).prototype) ~= nil
+  return target.family(entity) == const.FAMILY_MACHINE
 end
 
 function target.from_entity(entity, force)
@@ -107,6 +129,32 @@ function target.revalidate(t)
   if not built then return false end
   t.entity, t.is_ghost = built, false
   return true
+end
+
+-- The inventory a Target's items go into: a chest's own, or a crafter's
+-- input. The one answer for request, reopen, carried and copy.
+function target.input_inventory(t)
+  if t.kind == const.KIND_CHEST then return defines.inventory.chest end
+  return defines.inventory.crafter_input
+end
+
+-- The recipe and quality every fed machine agrees on (ADR-0012): each fed
+-- crafter whose current recipe the chest allows has a say; one that is
+-- fuel-only or on no primable recipe has none. None, or a disagreement (one
+-- chest feeding an iron and a copper furnace), gives nil.
+function target.fed_recipe(t)
+  local recipe, quality
+  for _, machine in ipairs(feed.machines(t.entity)) do
+    local m = target.from_entity(machine, t.force)
+    local name, q = nil, nil
+    if m and m.kind ~= const.KIND_FUEL_ONLY then name, q = target_recipe.current(m) end
+    if name and target_recipe.allows(t, name) then
+      q = q or NORMAL
+      if recipe and (recipe ~= name or quality ~= q) then return nil end
+      recipe, quality = name, q
+    end
+  end
+  return recipe, quality
 end
 
 function target.inventory_count(t, inventory_define, item, quality)

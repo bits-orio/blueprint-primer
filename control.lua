@@ -51,4 +51,5 @@ script.on_event(defines.events.on_gui_value_changed, gui_events.on_value_changed
 script.on_event(defines.events.on_gui_text_changed, gui_events.on_text_changed)
 script.on_event(defines.events.on_gui_confirmed, gui_events.on_confirmed)
 script.on_event(defines.events.on_gui_elem_changed, gui_events.on_elem_changed)
+script.on_event(defines.events.on_gui_switch_state_changed, gui_events.on_switch_state_changed)
 script.on_event(defines.events.on_gui_closed, gui_events.on_closed)

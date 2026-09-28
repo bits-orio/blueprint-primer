@@ -5,7 +5,7 @@
 
 local STOCK = {
   { "coal", 200 }, { "stone", 100 },
-  { "iron-plate", 100 },
+  { "iron-plate", 400 }, { "iron-gear-wheel", 100 }, { "electronic-circuit", 100 },
   { "copper-cable", 200 }, { "solid-fuel", 50 }, { "wood", 50 },
 }
 
@@ -30,9 +30,42 @@ local function robots(surface)
   for _, s in ipairs(STOCK) do chest.insert { name = s[1], count = s[2] } end
 end
 
-local function ghost(surface, name, pos, recipe)
-  local g = surface.create_entity { name = "entity-ghost", inner_name = name, position = pos, force = "player" }
+local function ghost(surface, name, pos, recipe, direction)
+  local g = surface.create_entity {
+    name = "entity-ghost", inner_name = name, position = pos, force = "player", direction = direction,
+  }
   if recipe then g.set_recipe(recipe) end
+  return g
+end
+
+-- Enough rows to overflow items mode's scroll pane (about eight lines).
+local TEN_ITEMS = {
+  "iron-plate", "copper-plate", "coal", "stone", "wood",
+  "iron-gear-wheel", "copper-cable", "electronic-circuit", "stone-brick", "iron-stick",
+}
+
+local function built(surface, name, pos)
+  return surface.create_entity { name = name, position = pos, force = "player" }
+end
+
+-- Chests (ADR-0012), in the empty strip above the machines and a row below.
+-- J feeds an assembler: an inserter facing west takes from the chest on its
+-- west into the machine on its east (the spike's measured layout).
+local function chests(surface)
+  ghost(surface, "iron-chest", { -8.5, -9.5 })                                 -- J: ghost chest, fed
+  ghost(surface, "inserter", { -7.5, -9.5 }, nil, defines.direction.west)
+  ghost(surface, "assembling-machine-2", { -5.5, -9.5 }, "inserter")           -- J's fed machine
+  local k = built(surface, "iron-chest", { -1.5, -9.5 })                       -- K: built, 20 stacks of stone
+  k.insert { name = "stone", count = 1000 }
+  built(surface, "wooden-chest", { 2.5, -9.5 })                                -- L: plain, nothing around
+  for x = 2, 6, 2 do built(surface, "stone-furnace", { x, 8 }) end             -- M: furnace row
+  for x = 1.5, 5.5, 2 do built(surface, "wooden-chest", { x, 9.5 }) end        -- N: chest row under it
+  local o = ghost(surface, "steel-chest", { 6.5, -9.5 })                       -- O: ten pending items
+  local plans = {}
+  for i, name in ipairs(TEN_ITEMS) do
+    plans[i] = { id = { name = name }, items = { in_inventory = { { inventory = defines.inventory.chest, stack = 47 - i, count = 1 } } } }
+  end
+  o.insert_plan = plans
 end
 
 script.on_init(function()
@@ -48,6 +81,7 @@ script.on_init(function()
   -- Recipes stay as in a fresh freeplay game, so steel plate and engine
   -- units are unresearched for the ADR-0009 checks.
   robots(surface)
+  chests(surface)
   ghost(surface, "stone-furnace", { 4, -3 })                                  -- A: ghost furnace
   local f = surface.create_entity { name = "stone-furnace", position = { 8, -3 }, force = "player" }
   f.get_inventory(defines.inventory.crafter_input).insert { name = "iron-ore", count = 5 } -- B: built furnace, 5 ore in
@@ -97,7 +131,7 @@ end
 script.on_nth_tick(120, function()
   storage.seen = storage.seen or {}
   local s = game.surfaces.nauvis
-  for _, e in pairs(s.find_entities_filtered { area = { { -40, -30 }, { 40, 30 } }, type = { "furnace", "assembling-machine", "entity-ghost" } }) do
+  for _, e in pairs(s.find_entities_filtered { area = { { -40, -30 }, { 40, 30 } }, type = { "furnace", "assembling-machine", "container", "entity-ghost" } }) do
     local key = e.position.x .. "," .. e.position.y
     local line = describe(e)
     if storage.seen[key] ~= line then

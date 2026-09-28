@@ -26,12 +26,17 @@ function pending.removals(t)
   return proxy and proxy.valid and proxy.removal_plan or {}
 end
 
+-- Items one plan requests into one inventory, and the highest stack index
+-- they go into (-1 when none).
 local function counted(plan, inventory)
-  local total = 0
+  local total, top = 0, -1
   for _, position in ipairs(plan.items.in_inventory or {}) do
-    if position.inventory == inventory then total = total + (position.count or 1) end
+    if position.inventory == inventory then
+      total = total + (position.count or 1)
+      top = math.max(top, position.stack or 0)
+    end
   end
-  return total
+  return total, top
 end
 
 -- Items of one name and quality requested into one inventory, all stacks.
@@ -59,14 +64,15 @@ function pending.within(plans, inventory)
   return list
 end
 
--- Every item requested into one inventory, in plan order, as
--- `{ name, quality, count }`.
+-- Every item requested into one inventory, in plan order (the engine's
+-- order, not the order the plans were written in), as `{ name, quality,
+-- count, top }`, where top is the highest stack index it goes into.
 function pending.items_in(plans, inventory)
   local list = {}
   for _, plan in ipairs(plans) do
-    local count = counted(plan, inventory)
+    local count, top = counted(plan, inventory)
     if count > 0 then
-      list[#list + 1] = { name = plan.id.name, quality = plan.id.quality or NORMAL, count = count }
+      list[#list + 1] = { name = plan.id.name, quality = plan.id.quality or NORMAL, count = count, top = top }
     end
   end
   return list
