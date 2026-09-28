@@ -11,8 +11,8 @@
 #
 #   BP_MOD_SRC=<dir>   test another copy of the mod instead of the repo root
 #   BP_TEST_TICKS=<n>  benchmark length (must pass bp-test's CHECK_TICK)
-#   FACTORIO=<path>    the Factorio binary: 2.0.77 by default,
-#                      /home/shobhitg/factorio-2.1/bin/x64/factorio for 2.1.17
+#   FACTORIO=<path>    the Factorio binary: 2.1.17 by default on this branch,
+#                      /home/shobhitg/factorio-2.0/bin/x64/factorio for 2.0.77
 #
 # Factorio refuses a mod whose info.json names another major.minor than its
 # own. When the binary's differs from info.json's factorio_version, the run
@@ -23,7 +23,7 @@
 # logs, a failed Factorio run, or a missing BP_TEST DONE marker.
 set -uo pipefail
 
-FACTORIO="${FACTORIO:-/home/shobhitg/factorio-2.0/bin/x64/factorio}"
+FACTORIO="${FACTORIO:-/home/shobhitg/factorio-2.1/bin/x64/factorio}"
 DEV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$DEV_DIR/.." && pwd)"
 MOD_SRC="${BP_MOD_SRC:-$REPO}"

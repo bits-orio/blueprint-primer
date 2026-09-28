@@ -5,7 +5,7 @@
 #   BP_WORLD=<dev mod>   the world mod to load (default bp-gui-smoke)
 #   BP_SIZE=<WxH>        client window size (default 1600x900)
 set -uo pipefail
-FACTORIO="${FACTORIO:-/home/shobhitg/factorio-2.0/bin/x64/factorio}"
+FACTORIO="${FACTORIO:-/home/shobhitg/factorio-2.1/bin/x64/factorio}"
 DEV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$DEV_DIR/.." && pwd)"
 RUN="$REPO/.run/gui"

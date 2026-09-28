@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "title": "Blueprint Primer GUI smoke world",
   "author": "bits-orio",
-  "factorio_version": "2.0",
+  "factorio_version": "2.1",
   "description": "Dev-only: lays out a small world of primable machines around the player for driving the real GUI in a graphical client. Never shipped.",
   "dependencies": ["base >= 2.0", "BlueprintPrimer"]
 }

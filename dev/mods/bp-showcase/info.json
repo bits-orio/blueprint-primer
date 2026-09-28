@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "title": "Blueprint Primer showcase world",
   "author": "bits-orio",
-  "factorio_version": "2.0",
+  "factorio_version": "2.1",
   "description": "Dev-only: a tidy grass scene of furnaces for taking mod-portal screenshots. Never shipped.",
   "dependencies": ["base >= 2.0", "BlueprintPrimer"]
 }
