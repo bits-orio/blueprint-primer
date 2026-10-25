@@ -1,9 +1,31 @@
+-- 2.1.20 replaced an item's single fuel_category with the list fuel_categories
+-- and refuses the old field; 2.0 and the 2.1 builds before it know only the
+-- old one.
+local function base_at_least(major, minor, patch)
+  local have = { mods.base:match("^(%d+)%.(%d+)%.(%d+)") }
+  for i, want in ipairs { major, minor, patch } do
+    local n = tonumber(have[i])
+    if n ~= want then return n > want end
+  end
+  return true
+end
+local FUEL_LISTS = base_at_least(2, 1, 20)
+
+local function with_fuel(item, categories)
+  if FUEL_LISTS then
+    item.fuel_categories = categories
+  else
+    item.fuel_category = categories[1]
+  end
+  return item
+end
+
 -- A fuel worth exactly ten stone-furnace iron-plate crafts (10 x 288 kJ), so
 -- the delivery test can land a request precisely on a fuel-item boundary and
 -- show that the one-second margin (ADR-0004) is what lets the last craft finish.
 -- Hidden so it never competes in the default-fuel ranking.
 data:extend {
-  {
+  with_fuel({
     type = "item",
     name = "bp-test-fuel",
     icon = "__base__/graphics/icons/coal.png",
@@ -11,11 +33,29 @@ data:extend {
     subgroup = "raw-resource",
     order = "z[bp-test-fuel]",
     stack_size = 50,
-    fuel_category = "chemical",
     fuel_value = "2.88MJ",
     hidden = true,
-  },
+  }, { "chemical" }),
 }
+
+-- A fuel of two categories, which only an engine with fuel_categories can
+-- define: a stone furnace and a nuclear reactor both take it, and fuel.lua's
+-- memory must file a pick only under the categories its burner takes.
+if FUEL_LISTS then
+  data:extend {
+    with_fuel({
+      type = "item",
+      name = "bp-test-dual-fuel",
+      icon = "__base__/graphics/icons/solid-fuel.png",
+      icon_size = 64,
+      subgroup = "raw-resource",
+      order = "z[bp-test-dual-fuel]",
+      stack_size = 50,
+      fuel_value = "1MJ",
+      hidden = true,
+    }, { "chemical", "nuclear" }),
+  }
+end
 
 -- 2.0 names a recipe's category singly; 2.1 merged it into `categories`
 -- and refuses the old field.

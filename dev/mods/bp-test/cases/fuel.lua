@@ -73,6 +73,15 @@ local function accepts(surface)
   check.truthy("fuel.filters lists coal and solid-fuel", listed["coal"] and listed["solid-fuel"])
   check.truthy("fuel.filters excludes non-fuel and hidden",
     not listed["iron-plate"] and not listed["uranium-fuel-cell"] and not listed["bp-test-fuel"])
+  -- Only defined where items carry a list of fuel categories (2.1.20 on).
+  if prototypes.item["bp-test-dual-fuel"] then
+    check.truthy("fuel.accepts stone takes a two-category fuel", fuel.accepts(stone, "bp-test-dual-fuel"))
+    check.truthy("fuel.accepts reactor takes a two-category fuel", fuel.accepts(reactor, "bp-test-dual-fuel"))
+    fuel.remember(3, stone, "bp-test-dual-fuel")
+    local memory = storage.players[3].fuel_by_category
+    check.eq("fuel.remember files a pick under the burner's category", memory["chemical"], "bp-test-dual-fuel")
+    check.eq("fuel.remember skips categories the burner lacks", memory["nuclear"], nil)
+  end
 end
 
 local function default(surface)

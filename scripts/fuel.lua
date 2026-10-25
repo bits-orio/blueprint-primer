@@ -80,13 +80,42 @@ function fuel.max_crafts(t, recipe_name, fuel_item)
   return crafts
 end
 
+-- The fuel categories of an item, as a list. Factorio 2.1.20 replaced the
+-- single LuaItemPrototype::fuel_category with fuel_categories, which is absent
+-- (not empty) for an item that is not a fuel; 2.0 and the 2.1 builds before
+-- it have only the old field, and reading the field an engine lacks raises.
+-- So the list is probed and the single field is the fallback. Cached per item:
+-- prototypes cannot change while a save is running. The burner side is a set
+-- keyed by category name on every engine.
+local categories_cache = {}
+
+local function categories_of(prototype)
+  local cached = categories_cache[prototype.name]
+  if cached then return cached end
+  local ok, list = pcall(function() return prototype.fuel_categories end)
+  if not ok then
+    local single = prototype.fuel_category
+    list = single and { single } or nil
+  end
+  cached = list or {}
+  categories_cache[prototype.name] = cached
+  return cached
+end
+
+-- Does this burner take any of the item's fuel categories?
+local function burner_takes(burner, prototype)
+  for _, category in ipairs(categories_of(prototype)) do
+    if burner.fuel_categories[category] then return true end
+  end
+  return false
+end
+
 -- A fuel with a burnt result needs somewhere to put it.
 function fuel.accepts(t, item)
   local burner = t.burner
   local prototype = burner and item and prototypes.item[item]
   if not prototype or prototype.parameter then return false end
-  local category = prototype.fuel_category
-  if not category or prototype.fuel_value <= 0 or not burner.fuel_categories[category] then return false end
+  if prototype.fuel_value <= 0 or not burner_takes(burner, prototype) then return false end
   return not (prototype.burnt_result and burner.burnt_inventory_size == 0)
 end
 
@@ -165,10 +194,16 @@ function fuel.earliest(t)
   return best
 end
 
+-- Remembered under each of the item's categories that this burner takes: the
+-- player chose among those, so a burner of another category is not steered
+-- by this pick. One category per fuel, as in the base game, gives one entry.
 function fuel.remember(player_index, t, item)
   local prototype = item and prototypes.item[item]
-  if not (prototype and prototype.fuel_category and fuel.accepts(t, item)) then return end
-  state.player(player_index).fuel_by_category[prototype.fuel_category] = item
+  if not (prototype and fuel.accepts(t, item)) then return end
+  local remembered = state.player(player_index).fuel_by_category
+  for _, category in ipairs(categories_of(prototype)) do
+    if t.burner.fuel_categories[category] then remembered[category] = item end
+  end
 end
 
 return fuel
