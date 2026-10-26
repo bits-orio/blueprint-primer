@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.1
+Date: 2026-10-25
+  Bugfixes:
+    - Fixed a crash on Factorio 2.1.20 and later whenever fuel came into it: opening the priming window for a stone furnace, boiler, burner drill or locomotive, and copying, pasting or group priming burner machines. 2.1.20 changed how an item names its fuel category, and the old field no longer exists.
+---------------------------------------------------------------------------------------------------
 Version: 0.4.0
 Date: 2026-09-27
   Info:
