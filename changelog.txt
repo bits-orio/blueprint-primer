@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.5
+Date: 2026-11-19
+  Info:
+    - Fuel categories are read the way the Factorio 2.1 build (0.4.x) reads them. Nothing changes in play on Factorio 2.0.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.4
 Date: 2026-09-27
   Features:
