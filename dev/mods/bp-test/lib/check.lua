@@ -62,6 +62,8 @@ end
 function check.done()
   local t = storage.tally or { pass = 0, fail = 0 }
   say(string.format("DONE pass=%d fail=%d", t.pass, t.fail))
+  -- Ends the test-mode run at once (Factorio 2.1.24 and newer).
+  script.finish_test(t.fail == 0)
 end
 
 function check.plan_line(item, inventory, stack, count, quality)
