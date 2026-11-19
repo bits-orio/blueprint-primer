@@ -80,24 +80,16 @@ function fuel.max_crafts(t, recipe_name, fuel_item)
   return crafts
 end
 
--- The fuel categories of an item, as a list. Factorio 2.1.20 replaced the
--- single LuaItemPrototype::fuel_category with fuel_categories, which is absent
--- (not empty) for an item that is not a fuel; 2.0 and the 2.1 builds before
--- it have only the old field, and reading the field an engine lacks raises.
--- So the list is probed and the single field is the fallback. Cached per item:
--- prototypes cannot change while a save is running. The burner side is a set
--- keyed by category name on every engine.
+-- The fuel categories of an item, as a list: LuaItemPrototype::fuel_categories
+-- (Factorio 2.1.20 and later), absent for an item that is not a fuel. Cached
+-- per item: prototypes cannot change while a save is running. The burner side
+-- is a set keyed by category name.
 local categories_cache = {}
 
 local function categories_of(prototype)
   local cached = categories_cache[prototype.name]
   if cached then return cached end
-  local ok, list = pcall(function() return prototype.fuel_categories end)
-  if not ok then
-    local single = prototype.fuel_category
-    list = single and { single } or nil
-  end
-  cached = list or {}
+  cached = prototype.fuel_categories or {}
   categories_cache[prototype.name] = cached
   return cached
 end

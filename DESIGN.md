@@ -23,7 +23,7 @@ Proven by `bp-test` (`dev/run-tests.sh`):
 From the 2.0.77 docs:
 
 - Use `defines.inventory.crafter_input`, `crafter_modules` and `fuel` (the furnace_/assembling_machine_ names are deprecated aliases).
-- `LuaEntityPrototype.get_crafting_speed(quality)`, `.energy_usage` (J/tick), `.burner_prototype` (`effectivity`, `fuel_inventory_size`, `burnt_inventory_size`, `fuel_categories`), `.fixed_recipe`, `LuaItemPrototype.fuel_value`, `.fuel_category`, `.burnt_result`, `.module_effects` (normal-quality figures; quality strengthens a module's bonus, never its penalty).
+- `LuaEntityPrototype.get_crafting_speed(quality)`, `.energy_usage` (J/tick), `.burner_prototype` (`effectivity`, `fuel_inventory_size`, `burnt_inventory_size`, `fuel_categories`), `.fixed_recipe`, `LuaItemPrototype.fuel_value`, `.fuel_categories` (2.1.20; absent for a non-fuel), `.burnt_result`, `.module_effects` (normal-quality figures; quality strengthens a module's bonus, never its penalty).
 - Furnaces have no settable recipe (`set_recipe` is AssemblingMachine-only; furnace BlueprintEntity has no `recipe` field). A furnace's recipe is implied by what is requested into it. `get_recipe()` / `previous_recipe` read a built furnace's current or last recipe.
 - Car, locomotive and wagon BlueprintEntities carry `orientation` (RealOrientation), not `direction`.
 - A quality-N recipe consumes quality-N ingredients; request ingredients at the recipe's quality. Fuel is requested at normal quality, unless a built target already burns that fuel at another quality: a stack never mixes qualities, and fuel value does not depend on quality (`LuaItemPrototype` has quality bonuses only for a vehicle fuel's acceleration and top speed).
@@ -276,7 +276,7 @@ The geometry of a chest's fed machines: which crafters an inserter takes its ite
 - `fuel.estimate(t, recipe_name, crafts, fuel_item)` → integer ≥ 1: `ceil((crafts × J + margin) / fuel_value − FLOAT_EPSILON)`, `margin = energy_usage × max(1, effects.consumption_factor) × 60 × FUEL_MARGIN_SECONDS / effectivity`.
 - `fuel.capacity(t, fuel_item)` → `fuel_inventory_size × stack_size`.
 - `fuel.max_crafts(t, recipe_name, fuel_item)` → largest crafts whose estimate fits the capacity (`math.huge` when a craft costs no fuel).
-- `fuel.accepts(t, item)` → item is not a parameter, has fuel_value > 0, its fuel_category is in the burner's categories, and it has no burnt result unless the burner has a burnt-result slot.
+- `fuel.accepts(t, item)` → item is not a parameter, has fuel_value > 0, one of its fuel_categories is in the burner's categories, and it has no burnt result unless the burner has a burnt-result slot.
 - `fuel.filters(t)` → `elem_filters` for `choose-elem-button{elem_type="item"}`: per burner category, (fuel-category c AND NOT hidden AND NOT is-parameter), OR-combined.
 - `fuel.default(t, player_index)` → `item, quality`: for a built target, the first fuel already in its fuel inventory that `accepts`, at that stack's quality; else the remembered fuel for any of the burner's categories that `accepts`; else `fuel.earliest(t)`; both of those at normal quality.
 - `fuel.quality_for(t, item)` → the quality of the first `item` stack in a built target's fuel inventory, else `"normal"`.
