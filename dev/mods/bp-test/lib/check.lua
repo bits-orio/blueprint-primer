@@ -64,7 +64,8 @@ function check.done()
   say(string.format("DONE pass=%d fail=%d", t.pass, t.fail))
   -- Ends the test-mode run at once (Factorio 2.1.24 and newer); older
   -- engines run the --benchmark fallback out to its tick limit.
-  if script.finish_test then script.finish_test(t.fail == 0) end
+  -- Reading the missing key raises, so the call is probed.
+  pcall(function() script.finish_test(t.fail == 0) end)
 end
 
 function check.plan_line(item, inventory, stack, count, quality)
