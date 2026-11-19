@@ -62,6 +62,9 @@ end
 function check.done()
   local t = storage.tally or { pass = 0, fail = 0 }
   say(string.format("DONE pass=%d fail=%d", t.pass, t.fail))
+  -- Ends the test-mode run at once. Reading script.finish_test throws before
+  -- Factorio 2.1.24, so the call is wrapped for the 2.0 engine.
+  pcall(function() script.finish_test(t.fail == 0) end)
 end
 
 function check.plan_line(item, inventory, stack, count, quality)
