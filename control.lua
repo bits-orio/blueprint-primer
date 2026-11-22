@@ -41,6 +41,7 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
   if event.prototype_name == const.SHORTCUT then tool.on_shortcut(event) end
 end)
 script.on_event(const.INPUT_PRIME, tool.on_hotkey)
+script.on_event(const.INPUT_CONFIRM, gui_events.on_confirm_window)
 
 -- Copies, blueprints and settings paste carry a pending primed request (ADR-0008).
 script.on_event(defines.events.on_player_setup_blueprint, copy.on_setup)

@@ -7,6 +7,7 @@ const.MOD            = "BlueprintPrimer"
 const.TOOL           = "bp-primer-tool"          -- selection-tool item
 const.SHORTCUT       = "bp-primer-shortcut"      -- shortcut, action = "lua"
 const.INPUT_PRIME    = "bp-primer-prime"         -- custom input, ALT + P
+const.INPUT_CONFIRM  = "bp-primer-confirm"       -- linked to Confirm window
 const.GUI_PREFIX     = "bp_primer_"              -- every GUI element name starts with this
 const.WINDOW         = "bp_primer_window"
 const.CRAFTER_TYPES  = { ["assembling-machine"] = true, ["furnace"] = true }
