@@ -26,7 +26,8 @@ Each line is an action, then the expected result.
 
 ## Window
 
-- [ ] Title reads "Prime Stone furnace". The window opens centred, drags by its title bar and by the gap between the two bottom buttons, and closes with the X, with E and with Escape.
+- [ ] Title reads "Prime Stone furnace". The window opens centred and drags by its title bar and by the gap between the two bottom buttons. X and Escape dismiss it without making a request.
+- [ ] Press E with Request disabled: the draft stays open. Pick an allowed recipe and press E: the window closes and the machine has the displayed requests. Rebind Confirm window: the Request button shows the new key and that key submits.
 - [ ] It looks native: a shallow inner panel, slot-style icons, a green Request button. Nothing is added to the top or left GUI.
 
 ## Recipe and output
@@ -88,7 +89,7 @@ Each line is an action, then the expected result.
 
 - [ ] Mine the machine with its window open (a second player or `/c` may be needed), then press Max or Request: the window closes with "That machine or chest is gone."
 - [ ] With the window open, die (`/c game.player.character.die()`), or change force (`/c game.player.force = game.create_force("x")`): the window is gone afterwards, not stranded on screen.
-- [ ] With the window open, become a spectator without changing force (`/c game.player.set_controller{type = defines.controllers.spectator}`): the window is gone. As a spectator, ALT + P over a furnace does nothing. Open Space Age remote view with the window open: if the window stays on screen, E and Escape still close it.
+- [ ] With the window open, become a spectator without changing force (`/c game.player.set_controller{type = defines.controllers.spectator}`): the window is gone. As a spectator, ALT + P over a furnace does nothing. Open Space Age remote view with the window open: if the window stays on screen, E still requests and Escape cancels.
 - [ ] Let robots build the ghost while its window is open, then press Request: it tops up the built machine.
 - [ ] Save and reload with a window open: it still works.
 - [ ] Enable or disable another mod on that save: open windows are gone after loading, with no error.

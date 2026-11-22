@@ -28,4 +28,10 @@ data:extend({
     key_sequence = "ALT + P",
     consuming = "none",
   },
+  {
+    type = "custom-input",
+    name = const.INPUT_CONFIRM,
+    key_sequence = "",
+    linked_game_control = "confirm-gui",
+  },
 })

@@ -158,12 +158,31 @@ function events.on_switch_state_changed(event)
   dispatch(switch, event, false)
 end
 
--- E, Escape, or another GUI taking player.opened.
+-- Factorio sends the linked control before the close event. A nested item
+-- chooser can take the key itself, so only confirm if this frame also closes.
+function events.on_confirm_window(event)
+  local player = game.get_player(event.player_index)
+  if not (player and player.valid) then return end
+  local frame = player.gui.screen[names.window]
+  if not frame or player.opened ~= frame then return end
+  local p = state.player(player.index).priming
+  if p then p.confirm_tick = event.tick end
+end
+
 function events.on_closed(event)
   local element = event.element
   if not (element and element.valid and element.name == names.window) then return end
   local player = game.get_player(event.player_index)
-  if player and player.valid then window.close(player) end
+  if not (player and player.valid and element == player.gui.screen[names.window]) then return end
+  local p = state.player(player.index).priming
+  if not p or p.confirm_tick ~= event.tick then return window.close(player) end
+  p.confirm_tick = nil
+  local button = view.find(player, names.request)
+  if button and button.enabled then
+    dispatch(click, { player_index = player.index, element = button }, false)
+  end
+  -- Disabled or refused requests keep their inputs and can be corrected.
+  if element.valid then player.opened = element end
 end
 
 -- Dying, leaving, or changing force (an MTS team switch or spectate) clears

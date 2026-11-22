@@ -14,7 +14,7 @@ This is a ground-up rewrite of the 1.1 version for Factorio 2.0 and 2.1: 0.3.x r
 2. Grab the primer tool from the shortcut bar, or press **ALT + P** while hovering a furnace, assembler or chest (ghost or built).
 3. With the tool, click it to open the priming window (ALT + P skips this step).
 4. Pick a recipe (a built assembler that already has one keeps it) and drag the output slider to the amount you want. Recipes you have not researched yet show on a red slot; you can still pick them to plan ahead. A chest offers the same slider, or switch it to Items mode to list exact items and counts instead.
-5. Hit **Request** to write the request onto that machine or chest, or **Blueprint** to take a primed copy of it into your cursor instead.
+5. Click **Request** or press **E** (your **Confirm window** binding) to write the request onto that machine or chest. **Blueprint** puts a primed copy in your cursor. **Escape** cancels.
 6. To prime a whole row, drag the tool over it: every machine or chest of the same kind as the one nearest the middle is primed with the same numbers, and Blueprint then takes the whole dragged area with those primed. Copy-paste and Shift+click settings paste of a primed machine or chest work too.
 
 ## Chests
